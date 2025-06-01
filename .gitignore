@@ -1,0 +1,7 @@
+*.class
+target/
+*.properties
+debug.log
+dependency-reduced-pom.xml
+.vscode/
+
