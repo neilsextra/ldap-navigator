@@ -1,6 +1,6 @@
-# ldap-viewer
+# ldap-navigator
 
-Sample LDAP Viewer 
+Sample LDAP Navigator 
 
 ## To build  
 
