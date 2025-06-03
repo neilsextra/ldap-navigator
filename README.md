@@ -20,11 +20,11 @@ Set the environment variables MVNW_USERNAME and MVNW_PASSWORD (if Necessary)
 
 ## To Run on port 8085 default 8080
 
-`java '-Dserver.port=8085' -jar .\target\ldap-viewer-0.0.1-SNAPSHOT.jar`
+`java '-Dserver.port=8085' -jar .\target\ldap-navigator-0.0.1-SNAPSHOT.jar`
 
 ## Run without the command line and also port 8085 default 8080
 
-`javaw '-Dserver.port=8085' -jar .\target\ldap-viewer-0.0.1-SNAPSHOT.jar`
+`javaw '-Dserver.port=8085' -jar .\target\ldap-navigator-0.0.1-SNAPSHOT.jar`
 
 ## Example Connection String
 
