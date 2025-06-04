@@ -19,6 +19,7 @@ Sample LDAP Navigator
 Set the environment variables MVNW_USERNAME and MVNW_PASSWORD (if Necessary)
 
 `mvn wrapper:wrapper`
+
 `.\mvnw.cmd clean install package`
 
 ## To Run on port 8085 default 8080
