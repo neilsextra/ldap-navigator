@@ -1,16 +1,15 @@
-package au.org.tso.ldap.navigator;
+package au.gov.sa.euc.ldap.navigator;
 
-import java.util.*;
-
+import org.apache.directory.api.ldap.model.cursor.EntryCursor;
+import org.apache.directory.api.ldap.model.entry.Entry;
+import org.apache.directory.api.ldap.model.entry.Attribute;
+import org.apache.directory.api.ldap.model.message.SearchScope;
+import org.apache.directory.ldap.client.api.LdapConnection;
 import org.bouncycastle.asn1.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class DirectoryExporter {
-
-    @Autowired
-    Schema schemaManager;
 
     String bytesToHex(byte[] bytes) {
         StringBuilder sb = new StringBuilder();
@@ -22,60 +21,42 @@ public class DirectoryExporter {
 
     }
 
-    public byte[] export(LDAPConnection connection, String searchBase) throws Exception {
-        String dn;
+    public byte[] export(LdapConnection connection, String searchBase) throws Exception {
 
-        LDAPSchema schema = schemaManager.getSchema(connection);
-        LDAPSearchResults searchResults = connection.search(searchBase, LDAPConnection.SCOPE_BASE,
-                "(objectClass=*)", null, false);
+        try (EntryCursor cursor = connection.search(searchBase, "(objectclass=*)", SearchScope.OBJECT)) {
 
-        if (searchResults.hasMore()) {
-            LDAPEntry nextEntry = searchResults.next();
+            for (Entry entry : cursor) {
+                ASN1EncodableVector attributeVector = new ASN1EncodableVector();
 
-            dn = nextEntry.getDN();
+                for (Attribute attribute : entry.getAttributes()) {
+                    String attributeName = attribute.getAttributeType().getName();
+                    ASN1ObjectIdentifier oid = new ASN1ObjectIdentifier(attribute.getAttributeType().getOid());
 
-            ASN1EncodableVector attributeVector = new ASN1EncodableVector();
+                    if (attribute.isHumanReadable()) {
+                        attributeVector.add(new DERSequence(new ASN1Encodable[] {
+                                new DERUTF8String(attributeName), oid, new DERUTF8String(attribute.getString())
+                        }));
 
-            LDAPAttributeSet attributeSet = nextEntry.getAttributeSet();
-            Iterator allAttributes = attributeSet.iterator();
-
-            while (allAttributes.hasNext()) {
-                LDAPAttribute attribute = (LDAPAttribute) allAttributes.next();
-                String attributeName = attribute.getName();
-
-                Properties properties = schemaManager.getAttributeProperties(schema, attributeName);
-                ASN1ObjectIdentifier oid = new ASN1ObjectIdentifier(properties.get("id").toString());
-
-                Enumeration allValues = attribute.getStringValues();
-
-                if (allValues != null) {
-                    while (allValues.hasMoreElements()) {
-                        String value = (String) allValues.nextElement();
-                        if (Base64.isLDIFSafe(value)) {
-
-                            attributeVector.add(new DERSequence(new ASN1Encodable[] {
-                                    new DERUTF8String(attributeName), oid, new DERUTF8String(value)
-                            }));
-
-                        } else {
-                            attributeVector.add(new DERSequence(new ASN1Encodable[] {
-                                    new DERUTF8String(attributeName), oid, new DEROctetString(value.getBytes())
-                            }));
-                        }
+                    } else {
+                        attributeVector.add(new DERSequence(new ASN1Encodable[] {
+                                new DERUTF8String(attributeName), oid, new DEROctetString(attribute.getBytes())
+                        }));
                     }
+
                 }
+
+                ASN1Sequence attributeSequence = new DERSequence(attributeVector);
+
+                // Output the ASN.1 encoded data
+                attributeSequence.getEncoded();
+
+                return attributeSequence.getEncoded();
 
             }
 
-            ASN1Sequence attributeSequence = new DERSequence(attributeVector);
+            throw new Exception("DN - '" + searchBase + "' - not found");
 
-            // Output the ASN.1 encoded data
-            attributeSequence.getEncoded();
-
-            return attributeSequence.getEncoded();
         }
-
-        return new byte[0];
 
     }
 
