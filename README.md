@@ -6,10 +6,13 @@ Sample LDAP Navigator
 
 `mvn clean dependency:copy-dependencies compile package install`
 
-## To Run on port 8091
+## To Run on port 8080 
+
+`mvn spring-boot:run`
+
+## To Run on port 8091 
 
 `mvn spring-boot:run -D"spring-boot.run.jvmArguments='-Dserver.port=8091'"`
-
 # Alternate Instructions
 
 ## To build with Maven Wrapper - assuming basic authentiction is required
