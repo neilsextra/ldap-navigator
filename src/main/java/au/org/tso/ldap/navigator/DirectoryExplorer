@@ -1,0 +1,109 @@
+package au.gov.org.tso.ldap.navigator;
+
+import java.util.Map;
+import java.util.Vector;
+import java.util.HashMap;
+
+import org.apache.directory.api.ldap.model.cursor.EntryCursor;
+import org.apache.directory.api.ldap.model.entry.Entry;
+import org.apache.directory.api.ldap.model.entry.Attribute;
+import org.apache.directory.api.ldap.model.message.SearchScope;
+import org.apache.directory.ldap.client.api.LdapConnection;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+@Component
+public class DirectoryExplorer {
+
+    @Autowired
+    SchemaExplorer schemaExplorer;
+
+    public DirectoryExplorer() {
+    }
+
+    private String bytesToHex(byte[] bytes) {
+        StringBuilder sb = new StringBuilder();
+        for (byte b : bytes) {
+            sb.append(String.format("%02x", b));
+        }
+
+        return sb.toString();
+
+    }
+
+    Vector<String> search(LdapConnection connection, String dn) throws Exception {
+        Vector<String> entries = new Vector<String>();
+
+        try (EntryCursor cursor = connection.search(dn, "(objectclass=*)", SearchScope.OBJECT)) {
+
+            for (Entry entry : cursor) {
+
+                entries.add(entry.getDn().toString());
+
+            }
+
+        }
+
+        try (EntryCursor cursor = connection.search(dn, "(objectclass=*)", SearchScope.ONELEVEL)) {
+
+            for (Entry entry : cursor) {
+
+                entries.add(entry.getDn().toString());
+
+            }
+
+        }
+
+        return entries;
+
+    }
+
+    Vector<Map<String, String>> retrieve(LdapConnection connection, String dn) throws Exception {
+        Vector<Map<String, String>> attributes = new Vector<Map<String, String>>();
+        
+        var logger = LoggerFactory.getLogger(Navigator.class);
+
+        logger.info("Loading Schema...");
+
+        schemaExplorer.load(connection);
+
+        logger.info("Loaded Schema");
+
+        try {
+            Entry entry = connection.lookup(dn);
+
+            if (entry == null) {
+                logger.info("Entry is NULL");
+                
+                return attributes;
+            }
+
+            Map<String, String> properties = new HashMap<String, String>();
+
+            for (Attribute attribute : entry.getAttributes()) {
+
+                logger.info("Attribute: " + attribute.toString());
+
+                properties.put("name", attribute.getAttributeType().getName());
+                properties.put("oid", attribute.getAttributeType().getOid());
+                properties.put("SyntaxOid", attribute.getAttributeType().getSyntaxOid());
+                properties.put("type", attribute.get().isHumanReadable() ? "String" : "Binary");
+                properties.put("value", attribute.get().isHumanReadable() ? attribute.get().getString() :
+                        bytesToHex(attribute.get().getBytes()));
+                
+
+                attributes.add(properties);
+
+            }
+
+            return attributes;
+        
+        } catch (Exception e) {
+             logger.error("Search Error", e);
+             return attributes;
+        } 
+
+    }
+
+}
