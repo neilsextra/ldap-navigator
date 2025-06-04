@@ -161,6 +161,169 @@ async function search() {
 
     var message = new Message();
 
+    var result = await message.search(document.getElementById("ldap-url").value,'use strict'
+
+var tableView = null;
+var attributes = null;
+
+function showError(message) {
+
+    document.getElementById("error-message").innerHTML = message;
+    document.getElementById("error-dialog").showModal();
+
+}
+
+function hex2Char(value) {
+    const hexToByte = (hex) => {
+        var value = parseInt(`0x${hex}`, 16)
+        var output = value >= 32 && value <= 127 ? String.fromCharCode(value) : ".";
+
+        return output;
+
+    }
+
+    var hex = [];
+
+    for (var iChar = 0; iChar < value.length; iChar += 2) {
+
+        hex.push(value.substring(iChar, iChar + 2));
+
+    }
+
+    var output = "";
+
+    for (var iHex = 0; iHex < hex.length; iHex++) {
+        output += `${hexToByte(hex[iHex])}`;
+    }
+
+    return output;
+
+}
+
+function copyToClipboard(type, value) {
+
+    function formatHex(value) {
+
+        const hexToByte = (hex) => {
+            var value = parseInt(`0x${hex}`, 16)
+            var output = value >= 32 && value <= 127 ? String.fromCharCode(value) : ".";
+
+            return output;
+
+        }
+
+        var hex = [];
+
+        for (var iChar = 0; iChar < value.length; iChar += 2) {
+
+            hex.push(value.substring(iChar, iChar + 2));
+
+        }
+
+        var hexValues = "";
+        var charValues = "";
+
+        var iHex = 0;
+        var iPos = 0
+
+        var output = "";
+
+        for (; iHex < hex.length; iHex++) {
+
+            iPos += 1;
+
+            hexValues += `${hex[iHex]}|`;
+            charValues += `${hexToByte(hex[iHex])}`;
+
+            if (iPos % 16 == 0) {
+                output += hexValues;
+
+                output += charValues;
+
+                output += "\n";
+
+                hexValues = "";
+                charValues = "";
+            }
+
+        }
+
+        if (iHex % 16 != 0) {
+            output += hexValues;
+
+            for (var iCount = 0; iPos % 16 != 0; iPos++, iCount++) {
+
+                output += `${iCount < 16 ? "   " : "|"}`;
+            }
+
+            output += charValues;
+
+            output += ``;
+        }
+
+        return output;
+
+    }
+
+    if (type == "Hex") {
+
+        var hex = value;
+
+        navigator.clipboard.writeText(formatHex(value));
+
+
+    } else {
+        navigator.clipboard.writeText(value);
+    }
+
+}
+
+function copyToSearch(type, value) {
+
+    document.getElementById("search-argument").value = (type == "Hex") ? hex2Char(value).split('#')[0] : value.split('#')[0];
+
+}
+
+function copyToLaunch(type, value) {
+
+    document.getElementById("search-argument").value = (type == "Hex") ? hex2Char(value).split('#')[0] : value.split('#')[0];
+
+    search();
+
+}
+
+function setup(container, table) {
+    var storage = window.localStorage.getItem(`${container}:${document.getElementById("ldap-url").value}`);
+
+    var table = document.getElementById(table);
+
+    if (storage != null) {
+        var searchHistory = JSON.parse(storage);
+
+        for (var iHistory = 0; iHistory < searchHistory.length; iHistory++) {
+            var row = table.insertRow();
+
+            row.setAttribute("onclick", `window.select('${searchHistory[iHistory]}')`, 0);
+
+            var cell = row.insertCell();
+
+            cell.className = "result-table-item";
+            cell.style.textWrap = "nowrap";
+            cell.style.whiteSpace = "nowrap";
+
+            cell.innerHTML = searchHistory[iHistory];
+        }
+
+    }
+
+}
+
+async function search() {
+
+    document.getElementById("wait-dialog").showModal();
+
+    var message = new Message();
+
     var result = await message.search(document.getElementById("ldap-url").value,
         document.getElementById("search-argument").value);
 
