@@ -3,7 +3,7 @@ function Message() {
     this._connect = function (url) {
         
         return new Promise((accept, reject) => {
-            let parmURL = `/viewer/connect?url=${encodeURIComponent(url)}`;
+            let parmURL = `/navigator/connect?url=${encodeURIComponent(url)}`;
             var xhttp = new XMLHttpRequest();
 
             xhttp.open("GET", parmURL, true);
@@ -48,7 +48,7 @@ function Message() {
     this._search = function (url, argument) {
         
         return new Promise((accept, reject) => {
-            let parmURL = `/viewer/search?url=${encodeURIComponent(url)}&argument=${encodeURIComponent(argument)}`;
+            let parmURL = `/navigator/search?url=${encodeURIComponent(url)}&argument=${encodeURIComponent(argument)}`;
             var xhttp = new XMLHttpRequest();
 
             xhttp.open("GET", parmURL, true);
@@ -90,7 +90,7 @@ function Message() {
     this._retrieve = function (url, dn) {
         
         return new Promise((accept, reject) => {
-            let parmURL = `/viewer/retrieve?url=${encodeURIComponent(url)}&dn=${encodeURIComponent(dn)}`;
+            let parmURL = `/navigator/retrieve?url=${encodeURIComponent(url)}&argument=${encodeURIComponent(dn)}`;
             var xhttp = new XMLHttpRequest();
 
             xhttp.open("GET", parmURL, true);
@@ -131,7 +131,7 @@ function Message() {
     this._export = function (url, dn) {
         
         return new Promise((accept, reject) => {
-            let parmURL = `/viewer/export?url=${encodeURIComponent(url)}&dn=${encodeURIComponent(dn)}`;
+            let parmURL = `/navigator/export?url=${encodeURIComponent(url)}&dn=${encodeURIComponent(dn)}`;
             var xhttp = new XMLHttpRequest();
 
             xhttp.open("GET", parmURL, true);
