@@ -3,6 +3,13 @@
 var tableView = null;
 var attributes = null;
 
+function showError(message) {
+
+    document.getElementById("error-message").innerHTML = message;
+    document.getElementById("error-dialog").showModal();
+
+}
+
 function hex2Char(value) {
     const hexToByte = (hex) => {
         var value = parseInt(`0x${hex}`, 16)
@@ -438,7 +445,8 @@ async function select(dn) {
         document.getElementById("wait-dialog").close();
 
     } catch (exception) {
-        alert(`Server Error: ${exception.status} - ${exception.message}`);
+
+        showError(`Server Error: ${exception.status}`);
 
         document.getElementById("wait-dialog").close();
     }
@@ -466,6 +474,9 @@ window.onload = async function () {
         var message = new Message();
 
         try {
+
+             document.getElementById("wait-dialog").showModal();;
+
             var result = await message.connect(document.getElementById("ldap-url").value);
 
             document.getElementById("connect-dialog").close();
@@ -474,10 +485,11 @@ window.onload = async function () {
 
             setup("history", "history-table");
             setup("bookmarks", "bookmarks-table");
+            
+            document.getElementById("wait-dialog").close();
 
         } catch (exception) {
-            alert(`Server Error: ${exception.status} - ${exception.message}`);
-
+            showError(`Server Error: ${exception.status}`);
             document.getElementById("wait-dialog").close();
         }
 
@@ -545,10 +557,10 @@ window.onload = async function () {
 
             cell.innerHTML = document.getElementById("selected-dn").innerText;
 
+
         }
 
     });
-
 
     document.getElementById("unbookmark-button").addEventListener('click', async (e) => {
         var bookmarkStorage = window.localStorage.getItem(`bookmarks:${document.getElementById("ldap-url").value}`);
@@ -621,6 +633,18 @@ window.onload = async function () {
 
         document.getElementById("filter-history").value = "";
 
+    });
+
+    document.getElementById("connect-dialog").addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && preventClosing) {
+            event.preventDefault();
+        }
+    });
+
+        document.getElementById("wait-dialog").addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && preventClosing) {
+            event.preventDefault();
+        }
     });
 
     document.getElementById("connect-dialog").showModal();
