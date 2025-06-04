@@ -2,7 +2,6 @@ package au.org.tso.ldap.navigator;
 
 import java.util.*;
 
-
 import org.bouncycastle.asn1.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
