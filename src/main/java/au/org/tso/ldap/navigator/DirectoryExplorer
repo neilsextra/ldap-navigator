@@ -1,13 +1,20 @@
-package au.gov.org.tso.ldap.navigator;
+package au.gov.sa.euc.ldap.navigator;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.Vector;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.Collection;
 import java.util.HashMap;
 
 import org.apache.directory.api.ldap.model.cursor.EntryCursor;
 import org.apache.directory.api.ldap.model.entry.Entry;
 import org.apache.directory.api.ldap.model.entry.Attribute;
 import org.apache.directory.api.ldap.model.message.SearchScope;
+import org.apache.directory.api.ldap.model.schema.AttributeType;
+import org.apache.directory.api.ldap.model.schema.SchemaObjectWrapper;
+import org.apache.directory.api.ldap.model.schema.registries.Schema;
 import org.apache.directory.ldap.client.api.LdapConnection;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +37,59 @@ public class DirectoryExplorer {
 
         return sb.toString();
 
+    }
+
+    private String getOid(Collection<Schema> schemas, String id) {
+        for (Schema schema : schemas) {
+            Set<SchemaObjectWrapper> content = schema.getContent();
+
+            for (var attribute : content) {
+
+                if (attribute.get() instanceof AttributeType attributeType) {
+                    if (attributeType.getName().toLowerCase().equals(id.toLowerCase())) {
+
+                        return attributeType.getOid();
+                    }
+                }
+
+            }
+
+        }
+
+        return "";
+
+    }
+
+    private String getSyntaxOid(Collection<Schema> schemas, String id) {
+
+        for (Schema schema : schemas) {
+            Set<SchemaObjectWrapper> content = schema.getContent();
+
+            for (var attribute : content) {
+
+                if (attribute.get() instanceof AttributeType attributeType) {
+                    if (attributeType.getName().toLowerCase().equals(id.toLowerCase())) {
+
+                        return attributeType.getSyntaxOid().toString();
+                    }
+
+                }
+
+            }
+
+        }
+
+        return "";
+
+    }
+
+    boolean isHumanReadable(String value) {
+        Pattern pattern = Pattern.compile("[^\\p{ASCII}]", Pattern.CASE_INSENSITIVE);
+        Matcher matcher = pattern.matcher(value);
+        boolean matchFound = matcher.find();
+        
+        return (!matchFound);
+    
     }
 
     Vector<String> search(LdapConnection connection, String dn) throws Exception {
@@ -61,48 +121,47 @@ public class DirectoryExplorer {
 
     Vector<Map<String, String>> retrieve(LdapConnection connection, String dn) throws Exception {
         Vector<Map<String, String>> attributes = new Vector<Map<String, String>>();
-        
-        var logger = LoggerFactory.getLogger(Navigator.class);
+        var logger = LoggerFactory.getLogger(DirectoryExplorer.class);
 
-        logger.info("Loading Schema...");
-
-        schemaExplorer.load(connection);
-
-        logger.info("Loaded Schema");
+        Collection<Schema> schemas = schemaExplorer.load(connection);
 
         try {
             Entry entry = connection.lookup(dn);
 
             if (entry == null) {
                 logger.info("Entry is NULL");
-                
+
                 return attributes;
             }
 
-            Map<String, String> properties = new HashMap<String, String>();
-
             for (Attribute attribute : entry.getAttributes()) {
-
-                logger.info("Attribute: " + attribute.toString());
-
-                properties.put("name", attribute.getAttributeType().getName());
-                properties.put("oid", attribute.getAttributeType().getOid());
-                properties.put("SyntaxOid", attribute.getAttributeType().getSyntaxOid());
+                Map<String, String> properties = new HashMap<String, String>();
+               
+                properties.put("name", attribute.getUpId());
+                properties.put("oid", getOid(schemas, attribute.getId()));
+                properties.put("SyntaxOid", getSyntaxOid(schemas, attribute.getId()));
                 properties.put("type", attribute.get().isHumanReadable() ? "String" : "Binary");
-                properties.put("value", attribute.get().isHumanReadable() ? attribute.get().getString() :
-                        bytesToHex(attribute.get().getBytes()));
-                
 
+                if (isHumanReadable(attribute.get().getString())) {
+                    properties.put("type", "String");
+                    properties.put("value", attribute.get().getString());
+      
+                } else {
+                    properties.put("type", "Binary");
+                    properties.put("value", bytesToHex(attribute.get().getBytes()));
+               
+                }
+   
                 attributes.add(properties);
 
             }
 
             return attributes;
-        
+
         } catch (Exception e) {
-             logger.error("Search Error", e);
-             return attributes;
-        } 
+            logger.error("Search Error", e);
+            return attributes;
+        }
 
     }
 
