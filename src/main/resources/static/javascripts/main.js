@@ -391,7 +391,9 @@ async function showAttributes(result) {
             `</div>`;
 
         if (rows[row][3] == "String") {
-            document.getElementById("artifact-entry-view").innerHTML = `<div class="hex">${rows[row][4].replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>`;
+            var fragment = document.createRange().createContextualFragment(`<div class="hex">${rows[row][4].replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>`);
+            document.getElementById("artifact-entry-view").innerHTML = "";
+            document.getElementById("artifact-entry-view").appendChild(fragment);
         } else {
             document.getElementById("artifact-entry-view").innerHTML = appendHex(rows[row][4]);
         }

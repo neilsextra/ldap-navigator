@@ -70,7 +70,7 @@ public class DirectoryExplorer {
                 if (attribute.get() instanceof AttributeType attributeType) {
                     if (attributeType.getName().toLowerCase().equals(id.toLowerCase())) {
 
-                        return attributeType.getSyntaxOid().toString();
+                        return  attributeType.getSyntaxOid() == null ? "" : attributeType.getSyntaxOid();
                     }
 
                 }
