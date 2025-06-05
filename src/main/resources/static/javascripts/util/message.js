@@ -129,7 +129,6 @@ function Message() {
     }
 
     this._export = function (url, dn) {
-        
         return new Promise((accept, reject) => {
             let parmURL = `/navigator/export?url=${encodeURIComponent(url)}&dn=${encodeURIComponent(dn)}`;
             var xhttp = new XMLHttpRequest();
