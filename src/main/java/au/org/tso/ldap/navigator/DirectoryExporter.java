@@ -1,4 +1,4 @@
-package au.gov.sa.euc.ldap.navigator;
+package au.org.tso.ldap.navigator;
 
 import org.apache.directory.api.ldap.model.cursor.EntryCursor;
 import org.apache.directory.api.ldap.model.entry.Entry;
