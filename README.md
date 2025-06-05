@@ -1,34 +1,21 @@
-# ldap-navigator
+# LDAP Navigator
 
-Sample LDAP Navigator 
+GTK Sample LDAP Viewer 
 
 ## To build  
 
 `mvn clean dependency:copy-dependencies compile package install`
 
-## To Run on port 8080 
+## To Run 
 
-`mvn spring-boot:run`
+### Maven - on Port 8085 - Default 8080
+`mvn spring-boot:run -D"spring-boot.run.jvmArguments='-Dserver.port=8085'"`
 
-## To Run on port 8091 
+### Without Maven
+`java -jar .\target\navigator-1.0-SNAPSHOT.jar`
 
-`mvn spring-boot:run -D"spring-boot.run.jvmArguments='-Dserver.port=8091'"`
-# Alternate Instructions
-
-## To build with Maven Wrapper - assuming basic authentiction is required
-Set the environment variables MVNW_USERNAME and MVNW_PASSWORD (if Necessary)
-
-`mvn wrapper:wrapper`
-
-`.\mvnw.cmd clean install package`
-
-## To Run on port 8085 default 8080
-
-`java '-Dserver.port=8085' -jar .\target\ldap-navigator-0.0.1-SNAPSHOT.jar`
-
-## Run without the command line and also port 8085 default 8080
-
-`javaw '-Dserver.port=8085' -jar .\target\ldap-navigator-0.0.1-SNAPSHOT.jar`
+### Without Maven on Port 8080
+`java -Dserver.port=8085 -jar .\target\navigator-1.0-SNAPSHOT.jar`
 
 ## Example Connection String
 
