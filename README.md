@@ -15,7 +15,7 @@ GTK Sample LDAP Viewer
 `java -jar .\target\navigator-1.0-SNAPSHOT.jar`
 
 ### Without Maven on Port 8080
-`java -Dserver.port=8085 -jar .\target\navigator-1.0-SNAPSHOT.jar`
+`java -D"server.port=8085" -jar .\target\navigator-1.0-SNAPSHOT.jar`
 
 ## Example Connection String
 
