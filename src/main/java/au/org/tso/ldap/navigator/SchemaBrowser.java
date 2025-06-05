@@ -1,4 +1,4 @@
-package au.gov.sa.euc.ldap.navigator;
+package au.org.tso.ldap.navigator;
 
 import java.util.ArrayList;
 import java.util.Collection;
