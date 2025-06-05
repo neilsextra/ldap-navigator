@@ -1,37 +1,43 @@
-package au.org.tso.ldap.navigator;
+package au.gov.sa.euc.ldap.navigator;
 
-import org.apache.directory.api.ldap.model.schema.SchemaManager;
+import java.util.ArrayList;
+import java.util.Collection;
+
+import org.apache.directory.ldap.client.api.DefaultSchemaLoader;
 import org.apache.directory.ldap.client.api.LdapConnection;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.apache.directory.api.ldap.model.schema.registries.Schema;
 
 @Component
 public class SchemaExplorer {
-    public SchemaExplorer() {
 
+    public SchemaExplorer() {
     }
 
-    void load(LdapConnection connection) throws Exception {
+    Collection<Schema> load(LdapConnection connection) throws Exception {
         var logger = LoggerFactory.getLogger(SchemaExplorer.class);
 
         try {
-            connection.loadSchemaRelaxed();
+            DefaultSchemaLoader schemaLoader = new DefaultSchemaLoader(connection, true);
 
-            SchemaManager schemaManager = connection.getSchemaManager();
+            Collection<Schema> schemas = schemaLoader.getAllSchemas();
 
-            schemaManager.setRelaxed();
+            for (Schema schema : schemas) {
 
-            logger.info("Schemas Loaderd: " + schemaManager.getAllSchemas().size());
+                logger.info("Schema: '" + schema.getSchemaName() + "' - loaded");
 
-            schemaManager.loadAllEnabled();
+            }
 
-            logger.info("Schema Manager PROCESSOL: " + (schemaManager == null));
+            return schemas;
 
         } catch (
 
         Exception e) {
-            logger.error("Schema Error", e);
+            logger.error("Schema Loader Error", e);
         }
+
+        return new ArrayList<Schema>();
 
     }
 
