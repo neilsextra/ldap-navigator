@@ -9,11 +9,11 @@
         <relativePath />
         <!-- lookup parent from repository -->
     </parent>
-    <groupId>au.org.tso.ldap.viewer</groupId>
-    <artifactId>ldap-viewer</artifactId>
+    <groupId>au.org.tso.ldap.navigator</groupId>
+    <artifactId>ldap-navigator</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>LDAP Viewer</name>
-    <description>LDAP Viewer</description>
+    <name>LDAP Navigator</name>
+    <description>LDAP Navigator - uses the Apache Directory client to navigate an LDAP directory</description>
     <url />
     <licenses>
         <license />
