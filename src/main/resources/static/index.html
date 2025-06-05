@@ -7,7 +7,7 @@
     <link rel="stylesheet" type="text/css" href="styles/main.css">
     <link rel="stylesheet" type="text/css" href="styles/tableview.css">
     <link rel="stylesheet" type="text/css" href="styles/tab.css">
-    <title>LDAP Viewer</title>
+    <title>LDAP Navigator</title>
 
     <script src="javascripts/util/fileutil.js"></script>
     <script src="javascripts/util/message.js"></script>
@@ -29,6 +29,15 @@
                 </div>
             </div>
         </div>
+    </dialog>
+
+    <dialog id="error-dialog" class="dialog message-dialog" style="min-width:400px;">
+        <img src="images/exclamation.svg" width="48" height="48"
+            style="float: left; margin-right:10px;" />
+        <p id="error-message" style="font-size: 18px; font-weight: bold;">/p>
+        <form method="dialog">
+            <button class="message-dialog-small-button" style="float: right;">OK</button>
+        </form>
     </dialog>
 
     <dialog id="connect-dialog" class="dialog" style="min-width:500px; height:200px;">
@@ -54,7 +63,7 @@
 
     <div style="position:absolute; left:0px; right:0px; top:0px; height:30px; -webkit-app-region: drag;">
         <div class="header" style="position:absolute; top:-5px; left:10px; right:40px;">
-            <p>LDAP&nbsp;Searcher</p>
+            <p>LDAP&nbsp;Navigator</p>
         </div>
         <button id="clear-history-button" class="message-dialog-small-button"
             style="position:absolute; top:10px; right:10px;">
@@ -78,7 +87,7 @@
                 name="search-argument">
             </input>
             <button id="search-button" class="message-dialog-small-button"
-                style="float: right;height:24px; margin-left:5px">
+                style="float: right;height:24px; margin-left:5px" disabled>
                 <img src="images/search.svg" width="18" , height="18"></img>
             </button>
             <button id="erase-button" class="message-dialog-small-button" style="float: right; height:24px;">
