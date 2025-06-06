@@ -87,14 +87,14 @@ public class DirectoryExplorer {
             }
 
             for (Attribute attribute : entry.getAttributes()) {
-                Map<String, String> properties = new HashMap<String, String>();
+                Map<String, String> properties = new HashMap<>();
 
                 String oid =  schemaAttributes.containsKey(attribute.getId()) ? schemaAttributes.get(attribute.getId()).getOid() :" ";
                 String syntaxOid =  schemaAttributes.containsKey(attribute.getId()) ? schemaAttributes.get(attribute.getId()).getSyntaxOid() : " ";
 
                 properties.put("name", attribute.getUpId());
                 properties.put("oid", oid == null ? "" : oid);
-                properties.put("SyntaxOid", syntaxOid == null ? "" : syntaxOid == null ? "" : syntaxOid);
+                properties.put("SyntaxOid", syntaxOid == null ? "" : syntaxOid);
                 properties.put("type", attribute.get().isHumanReadable() ? "String" : "Binary");
 
                 if (isHumanReadable(attribute.get().getString())) {
