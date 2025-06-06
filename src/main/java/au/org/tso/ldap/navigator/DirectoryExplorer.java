@@ -1,11 +1,9 @@
 package au.org.tso.ldap.navigator;
 
 import java.util.Map;
-import java.util.Set;
 import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.Collection;
 import java.util.HashMap;
 
 import org.apache.directory.api.ldap.model.cursor.EntryCursor;
@@ -13,8 +11,6 @@ import org.apache.directory.api.ldap.model.entry.Entry;
 import org.apache.directory.api.ldap.model.entry.Attribute;
 import org.apache.directory.api.ldap.model.message.SearchScope;
 import org.apache.directory.api.ldap.model.schema.AttributeType;
-import org.apache.directory.api.ldap.model.schema.SchemaObjectWrapper;
-import org.apache.directory.api.ldap.model.schema.registries.Schema;
 import org.apache.directory.ldap.client.api.LdapConnection;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,50 +32,6 @@ public class DirectoryExplorer {
         }
 
         return sb.toString();
-
-    }
-
-    private String getOid(Collection<Schema> schemas, String id) {
-        for (Schema schema : schemas) {
-            Set<SchemaObjectWrapper> content = schema.getContent();
-
-            for (var attribute : content) {
-
-                if (attribute.get() instanceof AttributeType attributeType) {
-                    if (attributeType.getName().toLowerCase().equals(id.toLowerCase())) {
-
-                        return attributeType.getOid();
-                    }
-                }
-
-            }
-
-        }
-
-        return "";
-
-    }
-
-    private String getSyntaxOid(Collection<Schema> schemas, String id) {
-
-        for (Schema schema : schemas) {
-            Set<SchemaObjectWrapper> content = schema.getContent();
-
-            for (var attribute : content) {
-
-                if (attribute.get() instanceof AttributeType attributeType) {
-                    if (attributeType.getName().toLowerCase().equals(id.toLowerCase())) {
-
-                        return  attributeType.getSyntaxOid() == null ? "" : attributeType.getSyntaxOid();
-                    }
-
-                }
-
-            }
-
-        }
-
-        return "";
 
     }
 
@@ -123,7 +75,7 @@ public class DirectoryExplorer {
         Vector<Map<String, String>> attributes = new Vector<Map<String, String>>();
         var logger = LoggerFactory.getLogger(DirectoryExplorer.class);
 
-        Collection<Schema> schemas = schemaExplorer.load(connection);
+        Map<String, AttributeType> schemaAttributes = schemaExplorer.load(connection);
 
         try {
             Entry entry = connection.lookup(dn);
@@ -136,10 +88,13 @@ public class DirectoryExplorer {
 
             for (Attribute attribute : entry.getAttributes()) {
                 Map<String, String> properties = new HashMap<String, String>();
-               
+
+                String oid =  schemaAttributes.containsKey(attribute.getId()) ? schemaAttributes.get(attribute.getId()).getOid() :" ";
+                String syntaxOid =  schemaAttributes.containsKey(attribute.getId()) ? schemaAttributes.get(attribute.getId()).getSyntaxOid() : " ";
+
                 properties.put("name", attribute.getUpId());
-                properties.put("oid", getOid(schemas, attribute.getId()));
-                properties.put("SyntaxOid", getSyntaxOid(schemas, attribute.getId()));
+                properties.put("oid", oid == null ? "" : oid);
+                properties.put("SyntaxOid", syntaxOid == null ? "" : syntaxOid == null ? "" : syntaxOid);
                 properties.put("type", attribute.get().isHumanReadable() ? "String" : "Binary");
 
                 if (isHumanReadable(attribute.get().getString())) {
