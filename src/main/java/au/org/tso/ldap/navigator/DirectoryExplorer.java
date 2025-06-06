@@ -94,7 +94,7 @@ public class DirectoryExplorer {
 
                 properties.put("name", attribute.getUpId());
                 properties.put("oid", oid == null ? "" : oid);
-                properties.put("SyntaxOid", syntaxOid == null ? "" : syntaxOid);
+                properties.put("syntaxOid", syntaxOid == null ? "" : syntaxOid);
                 properties.put("type", attribute.get().isHumanReadable() ? "String" : "Binary");
 
                 if (isHumanReadable(attribute.get().getString())) {
