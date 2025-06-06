@@ -46,7 +46,7 @@ public class DirectoryExporter {
         Entry entry = connection.lookup(dn);
 
         if (entry == null) {
-            logger.info("Object: '" + dn + "' not Found);
+            logger.info("Object: '" + dn + "' not Found");
 
             throw new Exception("Object: '" + dn + "' not Found");
         }
