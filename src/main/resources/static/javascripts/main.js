@@ -102,28 +102,26 @@ function copyToClipboard(type, value) {
 
     }
 
-    if (type == "Hex") {
+    var decodedValue = atob(value);
 
-        var hex = value;
-
-        navigator.clipboard.writeText(formatHex(value));
-
+    if (type == "Binary") {
+        navigator.clipboard.writeText(formatHex(decodedValue));
 
     } else {
-        navigator.clipboard.writeText(value);
+        navigator.clipboard.writeText(decodedValue.replaceAll("&lt;", "<").replaceAll("&gt;", ">"));
     }
 
 }
 
 function copyToSearch(type, value) {
 
-    document.getElementById("search-argument").value = (type == "Hex") ? hex2Char(value).split('#')[0] : value.split('#')[0];
+    document.getElementById("search-argument").value = (type == "Binary") ? hex2Char(value).split('#')[0] : value.split('#')[0];
 
 }
 
 function copyToLaunch(type, value) {
 
-    document.getElementById("search-argument").value = (type == "Hex") ? hex2Char(value).split('#')[0] : value.split('#')[0];
+    document.getElementById("search-argument").value = (type == "Binary") ? hex2Char(value).split('#')[0] : value.split('#')[0];
 
     search();
 
@@ -316,9 +314,6 @@ async function showAttributes(result) {
             }
 
             var hex = [];
-
-            console.log(value);
-
             for (var iChar = 0; iChar < value.length; iChar += 2) {
 
                 hex.push(value.substring(iChar, iChar + 2));
@@ -381,7 +376,7 @@ async function showAttributes(result) {
             `Attribute: <b>${rows[row][0]}</b>` +
             `&nbsp;&nbsp;` +
             `<div style="position:absolute; top:5px; right:5px; height:32px;"> ` +
-            `<button class="button-no-style" onclick="window.copyToClipboard('${rows[row][3]}', '${rows[row][4]}')">` +
+            `<button class="button-no-style" onclick="window.copyToClipboard('${rows[row][3]}', '${btoa(rows[row][4])}')">` +
             `<img src="images/clipboard.svg" width="18", height="18"></img> </button>` +
             `&nbsp;` +
             `<button class="button-no-style" onclick="window.copyToSearch('${rows[row][3]}', '${rows[row][4]}')">` +
@@ -655,8 +650,6 @@ window.onload = async function () {
 
     document.getElementById("search-argument").addEventListener('input', (event) => {
         
-        console.log("Search Argument: " + (document.getElementById("search-argument").value.length < 1));
-
         document.getElementById("search-button").disabled = document.getElementById("search-argument").value.length < 1;
     
     });
