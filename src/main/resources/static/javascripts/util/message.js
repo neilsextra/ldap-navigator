@@ -45,10 +45,10 @@ function Message() {
 
     }
 
-    this._search = function (url, argument) {
+    this._search = function (url, argument, start) {
         
         return new Promise((accept, reject) => {
-            let parmURL = `/navigator/search?url=${encodeURIComponent(url)}&argument=${encodeURIComponent(argument)}`;
+            let parmURL = `/navigator/search?url=${encodeURIComponent(url)}&argument=${encodeURIComponent(argument)}&start=${encodeURIComponent(start)}`;
             var xhttp = new XMLHttpRequest();
 
             xhttp.open("GET", parmURL, true);
@@ -129,6 +129,7 @@ function Message() {
     }
 
     this._export = function (url, dn) {
+        
         return new Promise((accept, reject) => {
             let parmURL = `/navigator/export?url=${encodeURIComponent(url)}&dn=${encodeURIComponent(dn)}`;
             var xhttp = new XMLHttpRequest();
@@ -171,9 +172,9 @@ Message.prototype.connect = function (url) {
 
 }
 
-Message.prototype.search = function (url, argument) {
+Message.prototype.search = function (url, argument, start) {
 
-    return this._search(url.trim(), argument);
+    return this._search(url.trim(), argument, start);
 
 }
 
