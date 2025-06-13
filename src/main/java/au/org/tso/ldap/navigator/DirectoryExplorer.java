@@ -1,11 +1,9 @@
 package au.org.tso.ldap.navigator;
-
 import java.util.Map;
 import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 
 import org.apache.directory.api.ldap.model.cursor.EntryCursor;
 import org.apache.directory.api.ldap.model.entry.Entry;
@@ -19,6 +17,8 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class DirectoryExplorer {
+
+    final int MAX_RESULTS = 1000;
 
     @Autowired
     SchemaExplorer schemaExplorer;
@@ -40,29 +40,47 @@ public class DirectoryExplorer {
         Pattern pattern = Pattern.compile("[^\\p{ASCII}]", Pattern.CASE_INSENSITIVE);
         Matcher matcher = pattern.matcher(value);
         boolean matchFound = matcher.find();
-        
+
         return (!matchFound);
-    
+
     }
 
-    Vector<String> search(LdapConnection connection, String dn) throws Exception {
+    Vector<String> search(LdapConnection connection, String dn, int start) throws Exception {
         Vector<String> entries = new Vector<String>();
+
+        int startPosition = 0;
+        int row = 0;
 
         try (EntryCursor cursor = connection.search(dn, "(objectclass=*)", SearchScope.OBJECT)) {
 
-            for (Entry entry : cursor) {
+            if (start == 0) {
 
-                entries.add(entry.getDn().toString());
+                for (Entry entry : cursor) {
 
-            }
+                    entries.add(entry.getDn().toString());
 
+                }
+
+                row = 1;
+            } 
+            
         }
 
         try (EntryCursor cursor = connection.search(dn, "(objectclass=*)", SearchScope.ONELEVEL)) {
 
-            for (Entry entry : cursor) {
+            loop: for (Entry entry : cursor) {
+
+                if (startPosition < start) {
+                    startPosition += 1;
+                    continue loop;
+                }
+
+                if (row >= MAX_RESULTS) {
+                    break loop;
+                }
 
                 entries.add(entry.getDn().toString());
+                row += 1;
 
             }
 
@@ -88,25 +106,30 @@ public class DirectoryExplorer {
             }
 
             for (Attribute attribute : entry.getAttributes()) {
-                Map<String, String> properties = new LinkedHashMap<>();
+                Map<String, String> properties = new HashMap<String, String>();
 
-                String oid =  schemaAttributes.containsKey(attribute.getId()) ? schemaAttributes.get(attribute.getId()).getOid() :" ";
-                String syntaxOid =  schemaAttributes.containsKey(attribute.getId()) ? schemaAttributes.get(attribute.getId()).getSyntaxOid() : " ";
+                String oid = schemaAttributes.containsKey(attribute.getId())
+                        ? schemaAttributes.get(attribute.getId()).getOid()
+                        : " ";
+                String syntaxOid = schemaAttributes.containsKey(attribute.getId())
+                        ? schemaAttributes.get(attribute.getId()).getSyntaxOid()
+                        : " ";
 
                 properties.put("name", attribute.getUpId());
                 properties.put("oid", oid == null ? "" : oid);
-                properties.put("syntaxOid", syntaxOid == null ? "" : syntaxOid);
-      
+                properties.put("SyntaxOid", syntaxOid == null ? "" : syntaxOid == null ? "" : syntaxOid);
+                properties.put("type", isHumanReadable(attribute.get().getString()) ? "String" : "Binary");
+
                 if (isHumanReadable(attribute.get().getString())) {
                     properties.put("type", "String");
                     properties.put("value", attribute.get().getString());
-      
+
                 } else {
                     properties.put("type", "Binary");
                     properties.put("value", bytesToHex(attribute.get().getBytes()));
-               
+
                 }
-   
+
                 attributes.add(properties);
 
             }
