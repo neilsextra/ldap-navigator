@@ -3,6 +3,8 @@
 var tableView = null;
 var attributes = null;
 
+var rowCount = 0;
+
 function showError(message) {
 
     document.getElementById("error-message").innerHTML = message;
@@ -106,7 +108,6 @@ function copyToClipboard(type, value) {
 
     if (type == "Binary") {
         navigator.clipboard.writeText(formatHex(decodedValue));
-
     } else {
         navigator.clipboard.writeText(decodedValue.replaceAll("&lt;", "<").replaceAll("&gt;", ">"));
     }
@@ -153,27 +154,73 @@ function setup(container, table) {
 
 }
 
-async function search() {
-
-    document.getElementById("wait-dialog").showModal();
+async function getSearchResults(starting) {
+     document.getElementById("wait-dialog").showModal();
 
     var message = new Message();
 
     var result = await message.search(document.getElementById("ldap-url").value,
-        document.getElementById("search-argument").value);
+        document.getElementById("search-argument").value, starting);
 
     var html = "<table class='result-table'>";
+
+    rowCount = 0;
 
     for (var dn in result.response) {
 
         html += `<tr onclick="window.select('${result.response[dn]}')">` +
             `<td class='result-table-item' style="white-space: nowrap; text-wrap: nowrap;">${result.response[dn]}</td></tr>`;
 
+        rowCount += 1;
+
     }
 
     document.getElementById("search-results").innerHTML = html;
 
     document.getElementById("wait-dialog").close();
+
+    return rowCount;
+
+}
+
+async function search() {
+   var returnRows = await getSearchResults(0);
+   
+   console.log("Row Count (Search): " + rowCount + ":" + (rowCount/1000 >>0));
+    if ((returnRows/1000 >> 0) > 0) {
+        document.getElementById("search-navigate-right").disabled = false; 
+    } else {
+        rowCount += returnRows;
+    }
+
+ 
+}
+
+async function forward() {
+    var returnRows = await getSearchResults(rowCount)
+
+    console.log("Row Count (Forward): " + rowCount + ":" + (rowCount/1000 >>0));
+
+    if ((returnRows/100 >> 0) == 0) {
+       document.getElementById("search-navigate-right").disabled = true;        
+       document.getElementById("search-navigate-left").disabled = false; 
+    } else {
+        rowCount += 1000;
+        document.getElementById("search-navigate-right").disabled = false; 
+        document.getElementById("search-navigate-left").disabled = false; 
+    }
+
+}
+
+async function backward() {
+
+    rowCount -= 1000;
+
+    rowCount = await getSearchResults(rowCount)
+
+    if (rowCount  <= 1000) {
+       document.getElementById("search-navigate-left").disabled = true; 
+    }
 
 }
 
@@ -497,6 +544,18 @@ window.onload = async function () {
     document.getElementById("search-button").addEventListener('click', (e) => {
 
         search();
+
+    });
+
+    document.getElementById("search-navigate-right").addEventListener('click', (e) => {
+
+        forward();
+
+    });
+
+    document.getElementById("search-navigate-left").addEventListener('click', (e) => {
+
+        backward();
 
     });
 
