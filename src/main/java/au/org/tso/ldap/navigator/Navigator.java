@@ -6,7 +6,7 @@ import java.util.Vector;
 
 import org.apache.directory.ldap.client.api.LdapConnection;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
@@ -20,9 +20,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
 @SpringBootApplication
 @RestController
-@ComponentScan("au.org.tso.ldap.navigator")
+@ComponentScan(" au.org.tso.ldap.navigator")
 @RequestMapping("navigator")
 public class Navigator {
 
@@ -39,7 +41,6 @@ public class Navigator {
 		// this way you don't need to annotate on the exception directly
 		@ExceptionHandler(ResourceNotFoundException.class)
 		public ResponseEntity<String> handleResourceNotFoundException(ResourceNotFoundException ex) {
-
 
 			return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
 		}
@@ -79,14 +80,15 @@ public class Navigator {
 	}
 
 	@GetMapping("/search")
-	Vector<String> search(@RequestParam("url") String url, @RequestParam("argument") String argument) throws Exception {
+	Vector<String> search(@RequestParam("url") String url, @RequestParam("argument") String argument,
+			@RequestParam("start") String start) throws Exception {
 		var logger = LoggerFactory.getLogger(Navigator.class);
 
-		logger.info("Search Started");
+		logger.info("Search Started: '" + argument + "' - '" + start +"'");
 
 		LdapConnection connection = conenctionManager.connect(url);
 
-		Vector<String> entries = directoryExplorer.search(connection, argument);
+		Vector<String> entries = directoryExplorer.search(connection, argument, Integer.parseInt(start));
 
 		connection.close();
 
@@ -97,14 +99,15 @@ public class Navigator {
 	}
 
 	@GetMapping("/retrieve")
-	Vector<Map<String, String>> retrieve(@RequestParam("url") String url, @RequestParam("argument") String argument) throws Exception {
+	Vector<Map<String, String>> retrieve(@RequestParam("url") String url, @RequestParam("argument") String argument)
+			throws Exception {
 		var logger = LoggerFactory.getLogger(Navigator.class);
 
 		logger.info("Retrieve Started");
 
 		LdapConnection connection = conenctionManager.connect(url);
 
-		Vector<Map<String, String>>  attributes = directoryExplorer.retrieve(connection, argument);
+		Vector<Map<String, String>> attributes = directoryExplorer.retrieve(connection, argument);
 
 		connection.close();
 
