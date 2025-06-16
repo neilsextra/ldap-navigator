@@ -1,4 +1,4 @@
-package au.gov.sa.euc.ldap.navigator;
+package au.org.tso.ldap.navigator;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,7 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 @SpringBootApplication
 @RestController
-@ComponentScan("au.gov.sa.euc.ldap.navigator")
+@ComponentScan("au.org.tso.ldap.navigator")
 @RequestMapping("navigator")
 public class Navigator {
 
