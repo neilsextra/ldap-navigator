@@ -45,10 +45,53 @@ function Message() {
 
     }
 
-    this._search = function (url, argument, start) {
+    this._search = function (url, argument) {
         
         return new Promise((accept, reject) => {
-            let parmURL = `/navigator/search?url=${encodeURIComponent(url)}&argument=${encodeURIComponent(argument)}&start=${encodeURIComponent(start)}`;
+            let parmURL = `/navigator/search?url=${encodeURIComponent(url)}&argument=${encodeURIComponent(argument)}`;
+            var xhttp = new XMLHttpRequest();
+
+            xhttp.open("GET", parmURL, true);
+
+            xhttp.onreadystatechange = async function () {
+                xhttp.onload = function () {
+
+                    if (this.readyState === 4 && this.status === 200) {
+                        var response = JSON.parse(this.responseText);
+                        var result = JSON.parse(xhttp.response);
+
+                         accept({
+                            status: this.status,
+                            response: response
+                        });
+
+                    } else {
+
+                        reject({
+                            status: this.status,
+                            message: this.statusText
+                        });
+
+                    }
+
+                };
+
+                xhttp.onerror = function () {
+                };
+
+            }
+
+            xhttp.send();
+
+        });
+
+    }
+
+       this._next = function (url, argument, cursorPosition) {
+        
+        return new Promise((accept, reject) => {
+            let parmURL = `/navigator/next?url=${encodeURIComponent(url)}&argument=${encodeURIComponent(argument)}` +
+                          `&cursorPosition=${encodeURIComponent(cursorPosition)}`;
             var xhttp = new XMLHttpRequest();
 
             xhttp.open("GET", parmURL, true);
@@ -172,9 +215,15 @@ Message.prototype.connect = function (url) {
 
 }
 
-Message.prototype.search = function (url, argument, start) {
+Message.prototype.search = function (url, argument) {
 
-    return this._search(url.trim(), argument, start);
+    return this._search(url.trim(), argument);
+
+}
+
+Message.prototype.next = function (url, argument, cursorPosition) {
+
+    return this._next(url.trim(), argument, cursorPosition);
 
 }
 
