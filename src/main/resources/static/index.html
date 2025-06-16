@@ -7,9 +7,6 @@
     <link rel="stylesheet" type="text/css" href="styles/main.css">
     <link rel="stylesheet" type="text/css" href="styles/tableview.css">
     <link rel="stylesheet" type="text/css" href="styles/tab.css">
-
-    <link rel="icon" type="image/x-icon" href="images/favicon.ico">
-
     <title>LDAP Navigator</title>
 
     <script src="javascripts/util/fileutil.js"></script>
@@ -35,8 +32,7 @@
     </dialog>
 
     <dialog id="error-dialog" class="dialog message-dialog" style="min-width:400px;">
-        <img src="images/exclamation.svg" width="48" height="48"
-            style="float: left; margin-right:10px;" />
+        <img src="images/exclamation.svg" width="48" height="48" style="float: left; margin-right:10px;" />
         <p id="error-message" style="font-size: 18px; font-weight: bold;">/p>
         <form method="dialog">
             <button class="message-dialog-small-button" style="float: right;">OK</button>
@@ -97,8 +93,22 @@
                 <img src="images/erase.svg" width="18" , height="18"></img>
             </button>
             <div id="search-results"
-                style="position:absolute; top:36px; left:10px; right:10px; bottom:10px; border: 1px solid rgba(0,0,0, 0.2); padding:4px; overflow:auto;">
+                style="position:absolute; top:36px; left:10px; right:10px; bottom:45px; border: 1px solid rgba(0,0,0, 0.2); padding:4px; overflow:auto;">
             </div>
+            <div id="search-navigation"
+                style="position:absolute; height: 30px; left:10px; right:10px; bottom:10px; padding:4px; overflow:none;">
+                <label id="search-navigate-dn" class="status-message overflow-text" style="font-size:12px; font-weight:normal; position:absolute; top:7px; left:10px; width:300px"></label>
+                <button id="search-navigate-refresh" class="message-dialog-small-button"
+                    style="position:absolute; right:36px;" disabled>
+                    <img src="images/refresh.svg" width="18" , height="18"></img>
+                </button>
+                <button id="search-navigate-forward" class="message-dialog-small-button"
+                    style="position:absolute; right:0px;" disabled>
+                    <img src="images/forward.svg" width="18" , height="18"></img>
+                </button>
+
+            </div>
+
         </div>
         <div id="bookmarks-panel" class="tabcontent"
             style="position:absolute; top:45px; left:0px; right:0px; bottom:0px; overflow:hidden;">
@@ -106,12 +116,14 @@
                 name="filter-bookmarks">
             </input>
 
-            <button id="filter-bookmarks-button" class="message-dialog-small-button" style="float: right; height:24px; margin-left:5px;">
+            <button id="filter-bookmarks-button" class="message-dialog-small-button"
+                style="float: right; height:24px; margin-left:5px;">
                 <img src="images/filter.svg" width="18" , height="18"></img>
             </button>
-            
-            <button id="erase-bookmarks-filter-button" class="message-dialog-small-button" style="float: right; height:24px;">
-                <img src="images/erase.svg" width="18", height="18"></img>
+
+            <button id="erase-bookmarks-filter-button" class="message-dialog-small-button"
+                style="float: right; height:24px;">
+                <img src="images/erase.svg" width="18" , height="18"></img>
             </button>
 
             <div id="bookmarks-results"
@@ -125,12 +137,14 @@
                 name="filter-history">
             </input>
 
-            <button id="filter-history-button" class="message-dialog-small-button" style="float: right; height:24px; margin-left:5px;">
+            <button id="filter-history-button" class="message-dialog-small-button"
+                style="float: right; height:24px; margin-left:5px;">
                 <img src="images/filter.svg" width="18" , height="18"></img>
             </button>
 
-            <button id="erase-history-filter-button" class="message-dialog-small-button" style="float: right; height:24px;">
-                <img src="images/erase.svg" width="18", height="18"></img>
+            <button id="erase-history-filter-button" class="message-dialog-small-button"
+                style="float: right; height:24px;">
+                <img src="images/erase.svg" width="18" , height="18"></img>
             </button>
 
             <div id="history-results"
@@ -153,11 +167,13 @@
                 </select>
                 <input type="text" id="filter-selection" name="filter"
                     style="position:absolute; top:-2px; left:120px; right:80px"></input>
-                <button id="erase-filter-button" class="message-dialog-small-button" style="position:absolute; top:-4px; right:40px; height:24px;">
-                    <img src="images/erase.svg" width="16", height="16"></img>
+                <button id="erase-filter-button" class="message-dialog-small-button"
+                    style="position:absolute; top:-4px; right:40px; height:24px;">
+                    <img src="images/erase.svg" width="16" , height="16"></img>
                 </button>
-                <button id="filter-button" class="message-dialog-small-button" style="position:absolute; top:-4px; right:0px; height:24px;">
-                    <img src="images/filter.svg" width="16", height="16"></img>
+                <button id="filter-button" class="message-dialog-small-button"
+                    style="position:absolute; top:-4px; right:0px; height:24px;">
+                    <img src="images/filter.svg" width="16" , height="16"></img>
 
                 </button>
             </div>
@@ -180,8 +196,9 @@
         </div>
     </div>
 
-    <div id="viewer-status" class="status-message overflow-text"
-        style="position:absolute; bottom:10px; left:6px; right: 400px; ">
+    <div id="viewer-status-container" class="status-message"
+        style="position:absolute; bottom:30px; left:6px; width:400px;">
+        <label id="viewer-status" class="overflow-text" style="position:absolute; left:0px; right:0px">
     </div>
 
     <div id="export" class="status-message" style="position:absolute; bottom:8px; right: 10px; overflow: hidden;">
@@ -200,12 +217,10 @@
                 <img src="images/download.svg" width="18" , height="18"></img>
             </button>
         </span>
-        <span style="float:right;">
-            <div id="selected-dn" style="width:800px; text-align: right; margin-right: 10px; margin-top:15px;"
-                class="overflow-text"></div>
-        </span>
+    </div>
 
-
+    <div class="status-message" style="position:absolute; bottom:30px; right:140px; left:430px;">
+        <label id="selected-dn" class="overflow-text" style="position:absolute; left:0px; right:0px; text-align: right;"></label>
     </div>
 
 </body>
