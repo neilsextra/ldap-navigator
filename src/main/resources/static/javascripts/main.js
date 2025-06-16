@@ -3,7 +3,7 @@
 var tableView = null;
 var attributes = null;
 
-var rowCount = 0;
+var cursorPosition = null;
 
 function showError(message) {
 
@@ -154,61 +154,67 @@ function setup(container, table) {
 
 }
 
-async function getSearchResults(starting) {
-     document.getElementById("wait-dialog").showModal();
+async function search(dn) {
+    document.getElementById("wait-dialog").showModal();
 
     var message = new Message();
-
-    var result = await message.search(document.getElementById("ldap-url").value,
-        document.getElementById("search-argument").value, starting);
+    var result = await message.search(document.getElementById("ldap-url").value, dn);
 
     var html = "<table class='result-table'>";
 
-    rowCount = 0;
+    for (var dn in result.response.results) {
 
-    for (var dn in result.response) {
-
-        html += `<tr onclick="window.select('${result.response[dn]}')">` +
-            `<td class='result-table-item' style="white-space: nowrap; text-wrap: nowrap;">${result.response[dn]}</td></tr>`;
-
-        rowCount += 1;
+        html += `<tr onclick="window.select('${result.response.results[dn]}')">` +
+            `<td class='result-table-item' style="white-space: nowrap; text-wrap: nowrap;">` +
+            `${result.response.results[dn]}</td></tr>`;
 
     }
 
+    if (result.response.cursorPosition.length > 0) {
+        cursorPosition = result.response.cursorPosition;
+        document.getElementById("search-navigate-forward").disabled = false;
+    } else {
+        cursorPosition = null;
+        document.getElementById("search-navigate-forward").disabled = true;
+    }
+    
+    document.getElementById("search-navigate-refresh").disabled = false;
+    console.log(`Result DN: ${result.response.dn} - cursorPosition ${cursorPosition}`);
+
+    document.getElementById("search-navigate-dn").textContent = result.response.dn;
     document.getElementById("search-results").innerHTML = html;
 
     document.getElementById("wait-dialog").close();
 
-    return rowCount;
-
 }
 
-async function search() {
-   var returnRows = await getSearchResults(0);
-   
-   console.log("Row Count (Search): " + rowCount + ":" + (rowCount/1000 >>0));
-    if ((returnRows/1000 >> 0) > 0) {
-        document.getElementById("search-navigate-right").disabled = false; 
-    } else {
-        rowCount += returnRows;
+async function forward(dn, cursorPosition) {
+
+    document.getElementById("wait-dialog").showModal();
+
+    var message = new Message();
+    var result = await message.next(document.getElementById("ldap-url").value, dn, cursorPosition);
+
+    console.log(JSON.stringify(result));    
+
+    var html = "<table class='result-table'>";
+
+    for (var dn in result.response.results) {
+
+        html += `<tr onclick="window.select('${result.response.results[dn]}')">` +
+            `<td class='result-table-item' style="white-space: nowrap; text-wrap: nowrap;">` +
+            `${result.response.results[dn]}</td></tr>`;
+
     }
 
- 
-}
+    cursorPosition = result.response.cursorPosition;
 
-async function forward() {
-    var returnRows = await getSearchResults(rowCount)
+    console.log(`Result DN: ${result.response.dn} - cursorPosition ${cursorPosition}`);
 
-    console.log("Row Count (Forward): " + rowCount + ":" + (rowCount/1000 >>0));
+    document.getElementById("search-navigate-dn").textContent = result.response.dn;
+    document.getElementById("search-results").innerHTML = html;
 
-    if ((returnRows/100 >> 0) == 0) {
-       document.getElementById("search-navigate-right").disabled = true;        
-       document.getElementById("search-navigate-left").disabled = false; 
-    } else {
-        rowCount += 1000;
-        document.getElementById("search-navigate-right").disabled = false; 
-        document.getElementById("search-navigate-left").disabled = false; 
-    }
+    document.getElementById("wait-dialog").close();
 
 }
 
@@ -218,8 +224,8 @@ async function backward() {
 
     rowCount = await getSearchResults(rowCount)
 
-    if (rowCount  <= 1000) {
-       document.getElementById("search-navigate-left").disabled = true; 
+    if (rowCount <= 1000) {
+        document.getElementById("search-navigate-left").disabled = true;
     }
 
 }
@@ -274,15 +280,15 @@ function filter(container, tableView, filter) {
 }
 async function showAttributes(result) {
 
-    function filter(filterType, filterSelection, name, oid, value) {
-
+    function filter(filterType, filterSelection, entry) {
+               
         if (filterSelection.length == 0) {
             return true;
-        } else if (filterType == "name" && name.trim().toLowerCase().indexOf(filterSelection.trim().toLowerCase()) != -1) {
+        } else if (filterType == "name" && entry["name"].trim().toLowerCase().indexOf(filterSelection.trim().toLowerCase()) != -1) {
             return true;
-        } else if (filterType == "oid" && oid.trim().toLowerCase().indexOf(filterSelection.trim().toLowerCase()) != -1) {
+        } else if (filterType == "oid" &&  entry["oid"].trim().toLowerCase().indexOf(filterSelection.trim().toLowerCase()) != -1) {
             return true;
-        } else if (filterType == "value" && value.trim().toLowerCase().indexOf(filterSelection.trim().toLowerCase()) != -1) {
+        } else if (filterType == "value" && entry["value"].trim().toLowerCase().indexOf(filterSelection.trim().toLowerCase()) != -1) {
             return true;
         }
 
@@ -305,7 +311,9 @@ async function showAttributes(result) {
     for (var entry in result.response) {
         var row = [];
 
-        if (filter(filterType, filterSelection, result.response[entry][0], result.response[entry][1], result.response[entry][4])) {
+        console.log(JSON.stringify(result.response[entry]));
+
+        if (filter(filterType, filterSelection, result.response[entry])) {
 
             for (var field in result.response[entry]) {
 
@@ -447,6 +455,7 @@ async function showAttributes(result) {
 }
 
 async function select(dn) {
+    console.log(`Selected DN: ${dn}`)
 
     document.getElementById("selected-dn").innerHTML = `${dn}`;
 
@@ -521,7 +530,7 @@ window.onload = async function () {
 
         try {
 
-             document.getElementById("wait-dialog").showModal();;
+            document.getElementById("wait-dialog").showModal();;
 
             var result = await message.connect(document.getElementById("ldap-url").value);
 
@@ -531,7 +540,7 @@ window.onload = async function () {
 
             setup("history", "history-table");
             setup("bookmarks", "bookmarks-table");
-            
+
             document.getElementById("wait-dialog").close();
 
         } catch (exception) {
@@ -543,19 +552,20 @@ window.onload = async function () {
 
     document.getElementById("search-button").addEventListener('click', (e) => {
 
-        search();
+        search(document.getElementById("search-argument").value);
 
     });
 
-    document.getElementById("search-navigate-right").addEventListener('click', (e) => {
+    document.getElementById("search-navigate-refresh").addEventListener('click', (e) => {
+        console.log(document.getElementById("search-navigate-dn").value);
 
-        forward();
+        search(document.getElementById("search-navigate-dn").textContent);
 
     });
 
-    document.getElementById("search-navigate-left").addEventListener('click', (e) => {
+    document.getElementById("search-navigate-forward").addEventListener('click', (e) => {
 
-        backward();
+        forward(document.getElementById("search-navigate-dn").textContent, cursorPosition);
 
     });
 
@@ -708,9 +718,9 @@ window.onload = async function () {
 
 
     document.getElementById("search-argument").addEventListener('input', (event) => {
-        
+
         document.getElementById("search-button").disabled = document.getElementById("search-argument").value.length < 1;
-    
+
     });
 
     document.getElementById("connect-dialog").showModal();
