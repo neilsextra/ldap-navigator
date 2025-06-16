@@ -1,4 +1,4 @@
-package au.org.tso.ldap.navigator;
+package au.gov.sa.euc.ldap.navigator;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,7 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 @SpringBootApplication
 @RestController
-@ComponentScan(" au.org.tso.ldap.navigator")
+@ComponentScan("au.gov.sa.euc.ldap.navigator")
 @RequestMapping("navigator")
 public class Navigator {
 
@@ -59,9 +59,6 @@ public class Navigator {
 	ConnectionManager connectionManager;
 
 	@Autowired
-	ConnectionManager conenctionManager;
-
-	@Autowired
 	DirectoryExplorer directoryExplorer;
 
 	@Autowired
@@ -71,32 +68,45 @@ public class Navigator {
 	HashMap<String, String> connect(@RequestParam("url") String url) throws Exception {
 		HashMap<String, String> parts = connectionManager.parse(url);
 
-		LdapConnection connection = connectionManager.connect(url);
-
-		connection.close();
+		connectionManager.reconnect(url);
 
 		return parts;
 
 	}
 
 	@GetMapping("/search")
-	Vector<String> search(@RequestParam("url") String url, @RequestParam("argument") String argument,
-			@RequestParam("start") String start) throws Exception {
+	SearchResponse search(@RequestParam("url") String url, @RequestParam("argument") String argument) throws Exception {
 		var logger = LoggerFactory.getLogger(Navigator.class);
 
-		logger.info("Search Started: '" + argument + "' - '" + start +"'");
+		logger.info("Search Started: '" + argument + "'");
 
-		LdapConnection connection = conenctionManager.connect(url);
+		LdapConnection connection = connectionManager.connect(url);
 
-		Vector<String> entries = directoryExplorer.search(connection, argument, Integer.parseInt(start));
+		SearchResponse response = directoryExplorer.search(connection, argument);
 
-		connection.close();
+		logger.info("Search Successful: " + response.getResults().size());
 
-		logger.info("Search Successful: " + entries.size());
-
-		return entries;
+		return response;
 
 	}
+
+	@GetMapping("/next")
+	SearchResponse next(@RequestParam("url") String url, @RequestParam("argument") String argument,
+			@RequestParam("cursorPosition") String cursorPosition) throws Exception {
+		var logger = LoggerFactory.getLogger(Navigator.class);
+
+		logger.info("Next Started: '" + argument + "' - '" + cursorPosition +"'");
+
+		LdapConnection connection = connectionManager.connect(url);
+
+		SearchResponse response = directoryExplorer.next(connection, argument, cursorPosition);
+
+		logger.info("Search Successful: " + response.getResults().size());
+
+		return response;
+
+	}
+
 
 	@GetMapping("/retrieve")
 	Vector<Map<String, String>> retrieve(@RequestParam("url") String url, @RequestParam("argument") String argument)
@@ -105,11 +115,9 @@ public class Navigator {
 
 		logger.info("Retrieve Started");
 
-		LdapConnection connection = conenctionManager.connect(url);
+		LdapConnection connection = connectionManager.connect(url);
 
 		Vector<Map<String, String>> attributes = directoryExplorer.retrieve(connection, argument);
-
-		connection.close();
 
 		logger.info("Retrieve Successful: " + attributes.size());
 
@@ -123,11 +131,9 @@ public class Navigator {
 
 		logger.info("Export Started");
 
-		LdapConnection connection = conenctionManager.connect(url);
+		LdapConnection connection = connectionManager.connect(url);
 
 		var exportValue = directoryExporter.export(connection, dn);
-
-		connection.close();
 
 		return exportValue;
 
