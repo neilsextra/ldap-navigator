@@ -150,7 +150,6 @@ h1 {
     overflow: hidden; /* Hide elements that may overflow */
     text-overflow: ellipsis; /* Request an ellipsis */
     text-wrap: nowrap;
-    width: 600px; /* Set a fixed width */
 }
 
 @keyframes rotate {
