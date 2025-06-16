@@ -1,4 +1,4 @@
-package au.org.tso.ldap.navigator;
+package au.gov.sa.euc.ldap.navigator;
 
 import java.util.Collection;
 import java.util.HashMap;
