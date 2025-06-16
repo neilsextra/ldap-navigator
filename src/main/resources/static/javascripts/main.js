@@ -5,6 +5,8 @@ var attributes = null;
 
 var cursorPosition = null;
 
+var MAX_ITEMS = 99;
+
 function showError(message) {
 
     document.getElementById("error-message").innerHTML = message;
@@ -175,9 +177,15 @@ async function search(dn) {
         document.getElementById("search-navigate-forward").disabled = false;
     } else {
         cursorPosition = null;
-        document.getElementById("search-navigate-forward").disabled = true;
+
+        if (items < MAX_ITEMS) {
+            document.getElementById("search-navigate-forward").disabled = false;
+        } else {
+            document.getElementById("search-navigate-forward").disabled = true;
+        }
+        
     }
-    
+
     document.getElementById("search-navigate-refresh").disabled = false;
     console.log(`Result DN: ${result.response.dn} - cursorPosition ${cursorPosition}`);
 
@@ -195,9 +203,9 @@ async function forward(dn, cursorPosition) {
     var message = new Message();
     var result = await message.next(document.getElementById("ldap-url").value, dn, cursorPosition);
 
-    console.log(JSON.stringify(result));    
-
     var html = "<table class='result-table'>";
+
+    var items = 0;
 
     for (var dn in result.response.results) {
 
@@ -205,6 +213,12 @@ async function forward(dn, cursorPosition) {
             `<td class='result-table-item' style="white-space: nowrap; text-wrap: nowrap;">` +
             `${result.response.results[dn]}</td></tr>`;
 
+        items += 1;
+
+    }
+
+    if (items < MAX_ITEMS) {
+        document.getElementById("search-navigate-forward").disabled = true;
     }
 
     cursorPosition = result.response.cursorPosition;
@@ -281,12 +295,12 @@ function filter(container, tableView, filter) {
 async function showAttributes(result) {
 
     function filter(filterType, filterSelection, entry) {
-               
+
         if (filterSelection.length == 0) {
             return true;
         } else if (filterType == "name" && entry["name"].trim().toLowerCase().indexOf(filterSelection.trim().toLowerCase()) != -1) {
             return true;
-        } else if (filterType == "oid" &&  entry["oid"].trim().toLowerCase().indexOf(filterSelection.trim().toLowerCase()) != -1) {
+        } else if (filterType == "oid" && entry["oid"].trim().toLowerCase().indexOf(filterSelection.trim().toLowerCase()) != -1) {
             return true;
         } else if (filterType == "value" && entry["value"].trim().toLowerCase().indexOf(filterSelection.trim().toLowerCase()) != -1) {
             return true;
