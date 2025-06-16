@@ -1,4 +1,4 @@
-package au.gov.sa.euc.ldap.navigator;
+package au.org.tso.ldap.navigator;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -32,6 +32,7 @@ public class ConnectionManager {
             properties.put("password", parts[4]);
             properties.put("host", parts[5]);
             properties.put("port", parts[6]);
+            properties.put("key", parts[3] + "@" + parts[5] + ":" + parts[6]);
         } else {
             throw new Exception("Invalid URL");
         }
@@ -43,14 +44,14 @@ public class ConnectionManager {
     LdapConnection connect(String url) throws Exception {
         var logger = LoggerFactory.getLogger(ConnectionManager.class);
         HashMap<String, String> properties = parse(url);
-        String username = properties.get("username");
+        String key = properties.get("key");
 
-        logger.info("Connecting... " + username);
+        logger.info("Connecting... " + key);
 
-        if (connections.containsKey(username)) {
-            logger.info("Found Connection: " + connections.get(username));
+        if (connections.containsKey(key)) {
+            logger.info("Found Connection: " + connections.get(key));
 
-            LdapConnection connection = connections.get(username);
+            LdapConnection connection = connections.get(key);
 
             if (connection.isConnected()) {
                 return connection;
@@ -58,7 +59,7 @@ public class ConnectionManager {
 
         }
 
-        logger.info("Create connection... " + username);
+        logger.info("Create connection... " + key);
 
         LdapConnectionConfig config = new LdapConnectionConfig();
 
@@ -73,25 +74,25 @@ public class ConnectionManager {
 
         LdapConnection connection = factory.newLdapConnection();
 
-        connections.put(username, connection);
+        connections.put(key, connection);
 
         System.out.println(connection.toString());
 
-        return connections.get(username);
+        return connections.get(key);
 
     }
 
     void reconnect(String url) throws Exception {
         HashMap<String, String> properties = parse(url);
         var logger = LoggerFactory.getLogger(ConnectionManager.class);
-        String username = properties.get("username");
+        String key = properties.get("key");
 
         logger.info("Reconnecting... " + properties.get("username"));
 
-        if (connections.containsKey(username)) {
-            logger.info("Found reconnection: " + connections.get(username).toString());
+        if (connections.containsKey(key)) {
+            logger.info("Found reconnection: " + connections.get(key).toString());
 
-            LdapConnection connection = connections.get(username);
+            LdapConnection connection = connections.get(key);
 
             logger.info("Found Reconnection: " + connection);
 
@@ -113,9 +114,9 @@ public class ConnectionManager {
 
         factory.setTimeOut(10000);
 
-        connections.put(username, factory.newLdapConnection());
+        connections.put(key, factory.newLdapConnection());
 
-        logger.info("Reconnection complete: " + properties.get("username"));
+        logger.info("Reconnection complete: " + properties.get("key"));
 
     }
 
