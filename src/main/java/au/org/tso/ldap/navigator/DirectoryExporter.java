@@ -1,4 +1,4 @@
-package au.gov.sa.euc.ldap.navigator;
+package au.org.tso.ldap.navigator;
 
 import java.util.Map;
 import java.util.regex.Matcher;
