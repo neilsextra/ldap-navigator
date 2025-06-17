@@ -126,7 +126,7 @@ function copyToLaunch(type, value) {
 
     document.getElementById("search-argument").value = (type == "Binary") ? hex2Char(value).split('#')[0] : value.split('#')[0];
 
-    search();
+    search(document.getElementById("search-argument").value);
 
 }
 
@@ -159,40 +159,49 @@ function setup(container, table) {
 async function search(dn) {
     document.getElementById("wait-dialog").showModal();
 
-    var message = new Message();
-    var result = await message.search(document.getElementById("ldap-url").value, dn);
+    try {
+        var message = new Message();
+        var result = await message.search(document.getElementById("ldap-url").value, dn);
 
-    var html = "<table class='result-table'>";
+        var html = "<table class='result-table'>";
+        var items = 0;
 
-    for (var dn in result.response.results) {
+        for (var dn in result.response.results) {
 
-        html += `<tr onclick="window.select('${result.response.results[dn]}')">` +
-            `<td class='result-table-item' style="white-space: nowrap; text-wrap: nowrap;">` +
-            `${result.response.results[dn]}</td></tr>`;
+            html += `<tr onclick="window.select('${result.response.results[dn]}')">` +
+                `<td class='result-table-item' style="white-space: nowrap; text-wrap: nowrap;">` +
+                `${result.response.results[dn]}</td></tr>`;
+            items += 1;
+    
+        }
 
-    }
-
-    if (result.response.cursorPosition.length > 0) {
-        cursorPosition = result.response.cursorPosition;
-        document.getElementById("search-navigate-forward").disabled = false;
-    } else {
-        cursorPosition = null;
-
-        if (items < MAX_ITEMS) {
+        if (result.response.cursorPosition.length > 0) {
+            cursorPosition = result.response.cursorPosition;
             document.getElementById("search-navigate-forward").disabled = false;
         } else {
-            document.getElementById("search-navigate-forward").disabled = true;
+            cursorPosition = null;
+
+            if (items < MAX_ITEMS - 1) {
+                document.getElementById("search-navigate-forward").disabled = true;
+            } else {
+                document.getElementById("search-navigate-forward").disabled = false;
+            }
+
         }
-        
+
+        document.getElementById("search-navigate-refresh").disabled = false;
+
+        document.getElementById("search-navigate-dn").textContent = result.response.dn;
+        document.getElementById("search-results").innerHTML = html;
+
+        document.getElementById("wait-dialog").close();
+
+    } catch (exception) {
+        showError(`Server Error: ${exception.status}`);
+
+        document.getElementById("wait-dialog").close();
+  
     }
-
-    document.getElementById("search-navigate-refresh").disabled = false;
-    console.log(`Result DN: ${result.response.dn} - cursorPosition ${cursorPosition}`);
-
-    document.getElementById("search-navigate-dn").textContent = result.response.dn;
-    document.getElementById("search-results").innerHTML = html;
-
-    document.getElementById("wait-dialog").close();
 
 }
 
@@ -222,8 +231,6 @@ async function forward(dn, cursorPosition) {
     }
 
     cursorPosition = result.response.cursorPosition;
-
-    console.log(`Result DN: ${result.response.dn} - cursorPosition ${cursorPosition}`);
 
     document.getElementById("search-navigate-dn").textContent = result.response.dn;
     document.getElementById("search-results").innerHTML = html;
@@ -324,8 +331,6 @@ async function showAttributes(result) {
 
     for (var entry in result.response) {
         var row = [];
-
-        console.log(JSON.stringify(result.response[entry]));
 
         if (filter(filterType, filterSelection, result.response[entry])) {
 
@@ -469,10 +474,8 @@ async function showAttributes(result) {
 }
 
 async function select(dn) {
-    console.log(`Selected DN: ${dn}`)
 
     document.getElementById("selected-dn").innerHTML = `${dn}`;
-
     document.getElementById("wait-dialog").showModal();
 
     var message = new Message();
@@ -571,7 +574,6 @@ window.onload = async function () {
     });
 
     document.getElementById("search-navigate-refresh").addEventListener('click', (e) => {
-        console.log(document.getElementById("search-navigate-dn").value);
 
         search(document.getElementById("search-navigate-dn").textContent);
 
