@@ -53,11 +53,12 @@
         <div style="position:absolute; bottom:10px; left:10px; right:10px;">
             <div id="connect-message"
                 style="color:rgba(255,0,0,0.6); width:300px; float:left; font-size: 12px; margin-top:8px;"></div>
+           
             <button id="ok-connect-dialog" class="message-dialog-small-button"
-                style="float: right; margin-top:10px;">Connect</button>
+                style="float:right; margin-top:10px; margin-left:10px;">Connect</button>
 
             <button id="cancel-connect-dialog" class="close-button message-dialog-small-cancel-button"
-                style="float: right; margin-top:30px; visibility: hidden;">Cancel</button>
+                style="float:right; margin-top:10px; visibility: hidden;">Cancel</button>
         </div>
 
     </dialog>
@@ -66,11 +67,10 @@
         <div class="header" style="position:absolute; top:-5px; left:10px; right:40px;">
             <p>LDAP&nbsp;Navigator</p>
         </div>
-        <button id="clear-history-button" class="message-dialog-small-button"
+        <button id="connect-button" class="message-dialog-small-button"
             style="position:absolute; top:10px; right:10px;">
-            <img src="images/reset.svg" width="18" , height="18"></img>
+            <img src="images/connect.svg" width="18" , height="18"></img>
         </button>
-
     </div>
 
     <div id="tabs" style="position:absolute; top:44px; left:10px; width:430px; bottom:10px; overflow:hidden;">
@@ -129,9 +129,22 @@
             </button>
 
             <div id="bookmarks-results"
-                style="position:absolute; top:36px; left:10px; right:10px; bottom:10px; border: 1px solid rgba(0,0,0, 0.2);  padding:4px; overflow:auto;">
+                style="position:absolute; top:36px; left:10px; right:10px; bottom:45px; border: 1px solid rgba(0,0,0, 0.2);  padding:4px; overflow:auto;">
                 <table id="bookmarks-table" class="result-table"></table>
             </div>
+
+            <div id="bookmark-controls"
+                style="position:absolute; height: 30px; left:10px; right:10px; bottom:10px; padding:4px; overflow:none;">
+                <button id="clear-bookmarks-button" class="message-dialog-small-button"
+                    style="position:absolute; right:36px;">
+                    <img src="images/reset.svg" width="18" , height="18"></img>
+                </button>
+                <button id="delete-bookmark-button" class="message-dialog-small-button"
+                    style="position:absolute; right:0px;" disabled>
+                    <img src="images/delete.svg" width="18" , height="18"></img>
+                </button>
+            </div>
+
         </div>
         <div id="history-panel" class="tabcontent"
             style="position:absolute; top:45px; left:0px; right:0px; bottom:0px; overflow:hidden;">
@@ -150,8 +163,20 @@
             </button>
 
             <div id="history-results"
-                style="position:absolute; top:36px; left:10px; right:10px; bottom:10px; border: 1px solid rgba(0,0,0, 0.2);  padding:4px; overflow:auto;">
+                style="position:absolute; top:36px; left:10px; right:10px; bottom:45px; border: 1px solid rgba(0,0,0, 0.2);  padding:4px; overflow:auto;">
                 <table id="history-table" class="result-table"></table>
+            </div>
+
+            <div id="history-controls"
+                style="position:absolute; height: 30px; left:10px; right:10px; bottom:10px; padding:4px; overflow:none;">
+                <button id="clear-history-button" class="message-dialog-small-button"
+                    style="position:absolute; right:36px;">
+                    <img src="images/reset.svg" width="18" , height="18"></img>
+                </button>
+                <button id="delete-history-button" class="message-dialog-small-button"
+                    style="position:absolute; right:0px;" disabled>
+                    <img src="images/delete.svg" width="18" , height="18"></img>
+                </button>
             </div>
         </div>
     </div>
@@ -199,7 +224,7 @@
     </div>
 
     <div id="viewer-status-container" class="status-message"
-        style="position:absolute; bottom:30px; left:6px; width:400px;">
+        style="position:absolute; bottom:30px; left:6px; width:500px;">
         <label id="viewer-status" class="overflow-text" style="position:absolute; left:0px; right:0px">
     </div>
 
