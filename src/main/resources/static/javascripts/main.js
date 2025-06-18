@@ -131,7 +131,7 @@ function copyToLaunch(type, value) {
 }
 
 function setup(container, table) {
-    var storage = window.localStorage.getItem(`${container}:${document.getElementById("ldap-url").value}`);
+    var storage = window.localStorage.getItem(`${container}:${window.storageKey}`);
 
     var table = document.getElementById(table);
 
@@ -161,7 +161,7 @@ async function search(dn) {
 
     try {
         var message = new Message();
-        var result = await message.search(document.getElementById("ldap-url").value, dn);
+        var result = await message.search(window.ldapURL, dn);
 
         var html = "<table class='result-table'>";
         var items = 0;
@@ -172,7 +172,7 @@ async function search(dn) {
                 `<td class='result-table-item' style="white-space: nowrap; text-wrap: nowrap;">` +
                 `${result.response.results[dn]}</td></tr>`;
             items += 1;
-    
+
         }
 
         if (result.response.cursorPosition.length > 0) {
@@ -200,7 +200,7 @@ async function search(dn) {
         showError(`Server Error: ${exception.status}`);
 
         document.getElementById("wait-dialog").close();
-  
+
     }
 
 }
@@ -210,7 +210,7 @@ async function forward(dn, cursorPosition) {
     document.getElementById("wait-dialog").showModal();
 
     var message = new Message();
-    var result = await message.next(document.getElementById("ldap-url").value, dn, cursorPosition);
+    var result = await message.next(window.ldapURL, dn, cursorPosition);
 
     var html = "<table class='result-table'>";
 
@@ -267,8 +267,38 @@ function find(table, dn) {
 
 }
 
+function remove(container, tableID) {
+    var containerStorage = window.localStorage.getItem(`${container}:${window.storageKey}`);
+    var entries = containerStorage != null ? JSON.parse(containerStorage) : [];
+    var selectedDN = document.getElementById("selected-dn").innerText;
+
+    processEntries = bookmarks.filter(item => item !== document.getElementById("selected-dn").innerText);
+
+    window.localStorage.setItem(`${container}:${selectedDN}`, JSON.stringify(processEntries));
+
+    var table = document.getElementById(tableID);
+
+    var item = -1;
+
+    exit: for (var iRow = 0, row; row = table.rows[iRow]; iRow++) {
+
+        for (var iCell = 0, col; col = row.cells[iCell]; iCell++) {
+
+            if (selectedDN.trim() == col.innerText.trim()) {
+                item = iRow;
+                break exit;
+            }
+        }
+    }
+
+    if (item != -1) {
+        table.deleteRow(item);
+    }
+
+}
+
 function filter(container, tableView, filter) {
-    var storage = window.localStorage.getItem(`${container}:${document.getElementById("ldap-url").value}`);
+    var storage = window.localStorage.getItem(`${container}:${window.storageKey}`);
 
     if (storage != null) {
         var entries = JSON.parse(storage);
@@ -351,10 +381,10 @@ async function showAttributes(result) {
 
     let widths = [];
 
-    widths.push(300);
-    widths.push(300);
-    widths.push(300);
-    widths.push(100);
+    widths.push(250);
+    widths.push(250);
+    widths.push(250);
+    widths.push(80);
     widths.push(800);
 
     tableView = new TableView({
@@ -482,11 +512,11 @@ async function select(dn) {
 
     try {
 
-        attributes = await message.retrieve(document.getElementById("ldap-url").value, dn);
+        attributes = await message.retrieve(window.ldapURL, dn);
 
         showAttributes(attributes);
 
-        var historyStorage = window.localStorage.getItem(`history:${document.getElementById("ldap-url").value}`);
+        var historyStorage = window.localStorage.getItem(`history:${window.storageKey}`);
 
         var searchHistory = historyStorage != null ? JSON.parse(historyStorage) : [];
 
@@ -507,7 +537,7 @@ async function select(dn) {
 
             searchHistory.push(dn);
 
-            window.localStorage.setItem(`history:${document.getElementById("ldap-url").value}`, JSON.stringify(searchHistory));
+            window.localStorage.setItem(`history:${window.storageKey}`, JSON.stringify(searchHistory));
 
         }
 
@@ -530,6 +560,10 @@ async function select(dn) {
  * Respond to the Document 'ready' event
  */
 window.onload = async function () {
+
+    window.ldapURL = "";
+    window.storageKey = "";
+
     var closeButtons = document.getElementsByClassName("close-button");
 
     for (var closeButton = 0; closeButton < closeButtons.length; closeButton++) {
@@ -547,13 +581,17 @@ window.onload = async function () {
 
         try {
 
-            document.getElementById("wait-dialog").showModal();;
+            document.getElementById("wait-dialog").showModal();
 
             var result = await message.connect(document.getElementById("ldap-url").value);
 
             document.getElementById("connect-dialog").close();
 
-            document.getElementById("viewer-status").innerHTML = `<b>Connected:&nbsp;</b>${result.response.host}:${result.response.port}`;
+            window.storageKey = result.response.host + ":" + result.response.port + "@" + result.response.username;
+
+            document.getElementById("viewer-status").innerHTML = `<b>Connected:&nbsp;</b>${window.storageKey}`;
+
+            window.ldapURL = document.getElementById("ldap-url").value;
 
             setup("history", "history-table");
             setup("bookmarks", "bookmarks-table");
@@ -604,7 +642,7 @@ window.onload = async function () {
     });
 
     document.getElementById("bookmark-button").addEventListener('click', async (e) => {
-        var bookmarkStorage = window.localStorage.getItem(`bookmarks:${document.getElementById("ldap-url").value}`);
+        var bookmarkStorage = window.localStorage.getItem(`bookmarks:${window.storageKey}`);
         var bookmarks = bookmarkStorage != null ? JSON.parse(bookmarkStorage) : [];
 
         var found = false;
@@ -625,7 +663,7 @@ window.onload = async function () {
         if (!found) {
             bookmarks.push(document.getElementById("selected-dn").innerText);
 
-            window.localStorage.setItem(`bookmarks:${document.getElementById("ldap-url").value}`, JSON.stringify(bookmarks));
+            window.localStorage.setItem(`bookmarks:${window.storageKey}`, JSON.stringify(bookmarks));
 
             var table = document.getElementById("bookmarks-table");
 
@@ -647,32 +685,14 @@ window.onload = async function () {
     });
 
     document.getElementById("unbookmark-button").addEventListener('click', async (e) => {
-        var bookmarkStorage = window.localStorage.getItem(`bookmarks:${document.getElementById("ldap-url").value}`);
-        var bookmarks = bookmarkStorage != null ? JSON.parse(bookmarkStorage) : [];
-        var selectedDN = document.getElementById("selected-dn").innerText;
 
-        bookmarks = bookmarks.filter(item => item !== document.getElementById("selected-dn").innerText);
+        remove("bookmarks", "bookmarks-table");
 
-        window.localStorage.setItem(`bookmarks:${selectedDN}`, JSON.stringify(bookmarks));
+    });
 
-        var table = document.getElementById("bookmarks-table");
+    document.getElementById("delete-bookmark-button").addEventListener('click', async (e) => {
 
-        var item = -1;
-
-        exit: for (var iRow = 0, row; row = table.rows[iRow]; iRow++) {
-
-            for (var iCell = 0, col; col = row.cells[iCell]; iCell++) {
-
-                if (selectedDN.trim() == col.innerText.trim()) {
-                    item = iRow;
-                    break exit;
-                }
-            }
-        }
-
-        if (item != -1) {
-            table.deleteRow(item);
-        }
+        remove("bookmarks", "bookmarks-table");
 
     });
 
@@ -680,7 +700,7 @@ window.onload = async function () {
         var fileUtil = new FileUtil(document);
         var message = new Message();
 
-        var blob = await message.export(document.getElementById("ldap-url").value,
+        var blob = await message.export(window.ldapURL,
             document.getElementById("selected-dn").innerText);
 
         fileUtil.saveAs(blob, document.getElementById("selected-dn").innerText + ".asn1");
@@ -689,9 +709,23 @@ window.onload = async function () {
 
     document.getElementById("clear-history-button").addEventListener('click', async (e) => {
 
-        window.localStorage.removeItem(document.getElementById("ldap-url").value);
+        window.localStorage.removeItem(`history:${window.storageKey}`);
 
         document.getElementById("history-table").innerHTML = "";
+
+    });
+
+    document.getElementById("clear-bookmarks-button").addEventListener('click', async (e) => {
+
+        window.localStorage.removeItem(`bookmarks:${window.storageKey}`);
+
+        document.getElementById("bookmarks-table").innerHTML = "";
+
+    });
+
+    document.getElementById("delete-history-button").addEventListener('click', async (e) => {
+
+          remove("history", "history-table");
 
     });
 
@@ -720,6 +754,13 @@ window.onload = async function () {
 
     });
 
+
+    document.getElementById("erase-history-filter-button").addEventListener('click', async (e) => {
+
+        document.getElementById("filter-history").value = "";
+
+    });
+
     document.getElementById("connect-dialog").addEventListener('keydown', (event) => {
         if (event.key === 'Escape' && preventClosing) {
             event.preventDefault();
@@ -736,6 +777,13 @@ window.onload = async function () {
     document.getElementById("search-argument").addEventListener('input', (event) => {
 
         document.getElementById("search-button").disabled = document.getElementById("search-argument").value.length < 1;
+
+    });
+
+    document.getElementById("connect-button").addEventListener('click', async (e) => {
+
+        document.getElementById("cancel-connect-dialog").style.visibility = "visible";
+        document.getElementById("connect-dialog").showModal();
 
     });
 
