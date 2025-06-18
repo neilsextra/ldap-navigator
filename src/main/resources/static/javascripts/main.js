@@ -268,13 +268,18 @@ function find(table, dn) {
 }
 
 function remove(container, tableID) {
-    var containerStorage = window.localStorage.getItem(`${container}:${window.storageKey}`);
+
+   var containerStorage = window.localStorage.getItem(`${container}:${window.storageKey}`);
     var entries = containerStorage != null ? JSON.parse(containerStorage) : [];
     var selectedDN = document.getElementById("selected-dn").innerText;
 
-    processEntries = bookmarks.filter(item => item !== document.getElementById("selected-dn").innerText);
+    if (selectedDN.length == 0) {
+        return;
+    }
 
-    window.localStorage.setItem(`${container}:${selectedDN}`, JSON.stringify(processEntries));
+    var filteredEntries = entries.filter(item => item !== document.getElementById("selected-dn").innerText);
+
+    window.localStorage.setItem(`${container}:${selectedDN}`, JSON.stringify(filteredEntries));
 
     var table = document.getElementById(tableID);
 
