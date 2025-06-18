@@ -1,18 +1,18 @@
 package au.org.tso.ldap.navigator;
 
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.List;
 
 import org.apache.directory.api.ldap.model.cursor.EntryCursor;
 import org.apache.directory.api.ldap.model.cursor.SearchCursor;
-import org.apache.directory.api.ldap.model.entry.Attribute;
 import org.apache.directory.api.ldap.model.entry.Entry;
+import org.apache.directory.api.ldap.model.entry.Attribute;
 import org.apache.directory.api.ldap.model.message.Control;
 import org.apache.directory.api.ldap.model.message.ResultCodeEnum;
 import org.apache.directory.api.ldap.model.message.SearchRequest;
@@ -155,8 +155,7 @@ public class DirectoryExplorer {
         searchRequest.addControl(pageControl);
     
         try (SearchCursor cursor = connection.search(searchRequest)) {
-            System.out.println("Cursor returned: " + cursor.isDone());
-            while (cursor.next()) {
+           while (cursor.next()) {
                 Entry entry = cursor.getEntry();
                 entries.add(entry.getDn().toString());
 
@@ -171,7 +170,6 @@ public class DirectoryExplorer {
 
                 if (responseControl != null) {
                     nextCursorPosition.append(Base64.getEncoder().encodeToString(responseControl.getCookie()));
-                    logger.info("Next: Captured Cursor position: " +  new String(responseControl.getCookie()) + " : " + nextCursorPosition.toString());
                 }
 
             }
@@ -194,7 +192,6 @@ public class DirectoryExplorer {
         Map<String, AttributeType> schemaAttributes = schemaExplorer.load(connection);
 
         try {
-            connection.setTimeOut(10000);
             Entry entry = connection.lookup(dn);
 
             if (entry == null) {
