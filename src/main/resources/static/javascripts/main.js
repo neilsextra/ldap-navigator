@@ -554,7 +554,7 @@ async function select(dn) {
 
     } catch (exception) {
 
-        showError(`Server Error: ${exception.repsonse}`);
+        showError(`Server Error: ${exception.response}`);
 
         document.getElementById("wait-dialog").close();
     }
