@@ -197,7 +197,8 @@ async function search(dn) {
         document.getElementById("wait-dialog").close();
 
     } catch (exception) {
-        showError(`Server Error: ${exception.status}`);
+
+        showError(`Server Error: ${exception.response}`);
 
         document.getElementById("wait-dialog").close();
 
@@ -553,7 +554,7 @@ async function select(dn) {
 
     } catch (exception) {
 
-        showError(`Server Error: ${exception.status}`);
+        showError(`Server Error: ${exception.repsonse}`);
 
         document.getElementById("wait-dialog").close();
     }
@@ -588,15 +589,15 @@ window.onload = async function () {
 
             document.getElementById("wait-dialog").showModal();
 
-            var result = await message.connect(document.getElementById("ldap-url").value);
+            var urlParts = document.getElementById("ldap-url").value.split("@");
+            var ldapUrl = urlParts[0] + ":" + document.getElementById("ldap-password").value + "@" + urlParts[1];
+
+            var result = await message.connect(ldapUrl);
 
             document.getElementById("connect-dialog").close();
-
             window.storageKey = result.response.host + ":" + result.response.port + "@" + result.response.username;
-
             document.getElementById("viewer-status").innerHTML = `<b>Connected:&nbsp;</b>${window.storageKey}`;
-
-            window.ldapURL = document.getElementById("ldap-url").value;
+            window.ldapURL = ldapUrl;
 
             setup("history", "history-table");
             setup("bookmarks", "bookmarks-table");
@@ -604,7 +605,7 @@ window.onload = async function () {
             document.getElementById("wait-dialog").close();
 
         } catch (exception) {
-            showError(`Server Error: ${exception.status}`);
+            showError(`Server Error: ${exception.response}`);
             document.getElementById("wait-dialog").close();
         }
 
