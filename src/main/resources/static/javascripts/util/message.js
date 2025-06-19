@@ -17,14 +17,13 @@ function Message() {
 
                         accept({
                             status: this.status,
-                            response: response
+                            response: this.statusText
                         });
 
                     } else {
-
                         reject({
                             status: this.status,
-                            message: this.responseText
+                            response: xhttp.response
                         });
 
                     }
@@ -66,10 +65,9 @@ function Message() {
                         });
 
                     } else {
-
                         reject({
                             status: this.status,
-                            message: this.statusText
+                            response: this.response
                         });
 
                     }
@@ -112,7 +110,7 @@ function Message() {
 
                         reject({
                             status: this.status,
-                            message: this.statusText
+                            response: this.response
                         });
 
                     }
@@ -153,7 +151,7 @@ function Message() {
 
                         reject({
                             status: this.status,
-                            message: this.statusText
+                            response: this.response
                         });
 
                     }
@@ -189,7 +187,7 @@ function Message() {
 
                         reject({
                             status: this.status,
-                            message: this.statusText
+                            response: this.response
                         });
 
                     }
