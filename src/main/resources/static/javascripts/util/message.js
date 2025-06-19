@@ -13,17 +13,16 @@ function Message() {
   
                     if (this.readyState === 4 && this.status === 200) {
                         var response = JSON.parse(this.responseText);
-                        var result = JSON.parse(xhttp.response);
-
+    
                         accept({
                             status: this.status,
-                            response: this.statusText
+                            response: response
                         });
 
                     } else {
                         reject({
                             status: this.status,
-                            response: xhttp.response
+                            response: this.response
                         });
 
                     }
@@ -57,8 +56,7 @@ function Message() {
 
                     if (this.readyState === 4 && this.status === 200) {
                         var response = JSON.parse(this.responseText);
-                        var result = JSON.parse(xhttp.response);
-
+ 
                          accept({
                             status: this.status,
                             response: response
@@ -140,8 +138,7 @@ function Message() {
                 xhttp.onload = function () {
                    if (this.readyState === 4 && this.status === 200) {
                         var response = JSON.parse(this.responseText);
-                        var result = JSON.parse(xhttp.response);
-
+ 
                          accept({
                             status: this.status,
                             response: response
