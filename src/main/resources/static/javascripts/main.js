@@ -618,6 +618,11 @@ window.onload = async function () {
             document.getElementById("viewer-status").innerHTML = `<b>Connected:&nbsp;</b>${window.storageKey}`;
             window.ldapURL = ldapUrl;
 
+            document.getElementById("search-results").innerHTML = "";
+            document.getElementById("artifacts-container").innerHTML = "";
+            document.getElementById("artifact-view").innerHTML = "";
+            document.getElementById("search-navigate-forward").disabled = true;
+
             setup("history", "history-table");
             setup("bookmarks", "bookmarks-table");
 
