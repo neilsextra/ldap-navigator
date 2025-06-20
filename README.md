@@ -22,7 +22,10 @@ GTK Sample LDAP Viewer
 `ldap://<user-dn>:<password>@<hostname>:389`
 
 Example
-`ldap://cn=read-only-admin,dc=example,dc=com:password@ldap.forumsys.com:389`
+`ldap://cn=read-only-admin,dc=example,dc=com@ldap.forumsys.com:389`
+
+### Password for the above example
+password 
 
 Queries
 `ou=mathematicians,dc=example,dc=com`
