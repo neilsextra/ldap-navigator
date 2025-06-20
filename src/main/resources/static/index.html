@@ -5,7 +5,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
     <link rel="icon" type="image/x-icon" href="images/favicon.ico">
-  
+
     <link rel="stylesheet" type="text/css" href="styles/main.css">
     <link rel="stylesheet" type="text/css" href="styles/tableview.css">
     <link rel="stylesheet" type="text/css" href="styles/tab.css">
@@ -14,12 +14,29 @@
 
     <script src="javascripts/util/fileutil.js"></script>
     <script src="javascripts/util/message.js"></script>
+    <script src="javascripts/util/template.js"></script>
     <script src="javascripts/gui/tableview.js"></script>
     <script src="javascripts/gui/dataview.js"></script>
     <script src="javascripts/gui/tabview.js"></script>
 </head>
 
 <body>
+    <!-- templates -->
+
+    <script type="text/template" data-template="attribute-view-entry">
+         Attribute: <b>${name}</b>
+         &nbsp;&nbsp;
+        <div style="position:absolute; top:5px; right:5px; height:32px;"> 
+            <button class="button-no-style" onclick="window.copyToClipboard('${type}', '${charValue}')">
+            <img src="images/clipboard.svg" width="18", height="18"></img> </button>
+            &nbsp;
+            <button class="button-no-style" onclick="window.copyToSearch('${type}', '${value}')">
+            <img src="images/pen-to-square.svg" width="18", height="18"></img> </button>
+            &nbsp;
+            <button class="button-no-style" onclick="window.copyToLaunch('${type}', '${value}')">
+            <img src="images/launch.svg" width="18", height="18"></img> </button>
+        </div>
+    </script>
     <!-- dialogs -->
 
     <dialog id="wait-dialog" class="dialog"
@@ -49,16 +66,16 @@
                 name="ldap-url" placeholder="ldap://userid@host:389">
             </input>
         </div>
-            <div style="position:absolute; top:105px; left:10px; right:200px">
-            <input class="modal-entry" id="ldap-password" style="position:absolute; left:10px; right:10px" type="password"
-                name="ldap-url" placeholder="password">
+        <div style="position:absolute; top:105px; left:10px; right:200px">
+            <input class="modal-entry" id="ldap-password" style="position:absolute; left:10px; right:10px"
+                type="password" name="ldap-url" placeholder="password">
             </input>
         </div>
 
         <div style="position:absolute; bottom:10px; left:10px; right:10px;">
             <div id="connect-message"
                 style="color:rgba(255,0,0,0.6); width:300px; float:left; font-size: 12px; margin-top:8px;"></div>
-           
+
             <button id="ok-connect-dialog" class="message-dialog-small-button"
                 style="float:right; margin-top:10px; margin-left:10px;">Connect</button>
 
@@ -104,7 +121,8 @@
             </div>
             <div id="search-navigation"
                 style="position:absolute; height: 30px; left:10px; right:10px; bottom:10px; padding:4px; overflow:none;">
-                <label id="search-navigate-dn" class="status-message overflow-text" style="font-size:12px; font-weight:normal; position:absolute; top:7px; left:10px; width:300px"></label>
+                <label id="search-navigate-dn" class="status-message overflow-text"
+                    style="font-size:12px; font-weight:normal; position:absolute; top:7px; left:10px; width:300px"></label>
                 <button id="search-navigate-refresh" class="message-dialog-small-button"
                     style="position:absolute; right:36px;" disabled>
                     <img src="images/refresh.svg" width="18" , height="18"></img>
@@ -252,7 +270,8 @@
     </div>
 
     <div class="status-message" style="position:absolute; bottom:30px; right:140px; left:430px;">
-        <label id="selected-dn" class="overflow-text" style="position:absolute; left:0px; right:0px; text-align: right;"></label>
+        <label id="selected-dn" class="overflow-text"
+            style="position:absolute; left:0px; right:0px; text-align: right;"></label>
     </div>
 
 </body>
