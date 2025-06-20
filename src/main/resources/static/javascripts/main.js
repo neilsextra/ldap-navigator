@@ -7,10 +7,30 @@ var cursorPosition = null;
 
 var MAX_ITEMS = 99;
 
+var TIME_OUT_VALUE = 180000;
+
 function showError(message) {
 
     document.getElementById("error-message").innerHTML = message;
     document.getElementById("error-dialog").showModal();
+
+}
+
+function detectActivity() {
+
+    if (window.idleState = true) {
+        document.getElementById("cancel-connect-dialog").style.visibility = "visible";
+        document.getElementById("connect-dialog").showModal();
+    } else {
+        console.log("Setting idle state");
+
+        window.idleState = true;
+        window.clearTimeout(window.timer);
+        window.timer = setTimeout(function () {
+            detectActivity();
+        }, TIME_OUT_VALUE);
+
+    }
 
 }
 
@@ -270,7 +290,7 @@ function find(table, dn) {
 
 function remove(container, tableID) {
 
-   var containerStorage = window.localStorage.getItem(`${container}:${window.storageKey}`);
+    var containerStorage = window.localStorage.getItem(`${container}:${window.storageKey}`);
     var entries = containerStorage != null ? JSON.parse(containerStorage) : [];
     var selectedDN = document.getElementById("selected-dn").innerText;
 
@@ -482,19 +502,18 @@ async function showAttributes(result) {
         }
 
         document.getElementById("artifact-view").style.display = "inline-block";
-        document.getElementById("artifact-entry-attribute").innerHTML =
-            `Attribute: <b>${rows[row][0]}</b>` +
-            `&nbsp;&nbsp;` +
-            `<div style="position:absolute; top:5px; right:5px; height:32px;"> ` +
-            `<button class="button-no-style" onclick="window.copyToClipboard('${rows[row][3]}', '${btoa(rows[row][4])}')">` +
-            `<img src="images/clipboard.svg" width="18", height="18"></img> </button>` +
-            `&nbsp;` +
-            `<button class="button-no-style" onclick="window.copyToSearch('${rows[row][3]}', '${rows[row][4]}')">` +
-            `<img src="images/pen-to-square.svg" width="18", height="18"></img> </button>` +
-            `&nbsp;` +
-            `<button class="button-no-style" onclick="window.copyToLaunch('${rows[row][3]}', '${rows[row][4]}')">` +
-            `<img src="images/launch.svg" width="18", height="18"></img> </button>` +
-            `</div>`;
+
+        var template = new Template("attribute-view-entry");
+
+        template.append("artifact-entry-attribute",
+            {
+                "name": rows[row][0],
+                "type": rows[row][3],
+                "charValue": btoa(rows[row][4]),
+                "value": rows[row][4]
+            }
+
+        )
 
         if (rows[row][3] == "String") {
             var fragment = document.createRange().createContextualFragment(`<div class="hex">${rows[row][4].replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>`);
@@ -731,7 +750,7 @@ window.onload = async function () {
 
     document.getElementById("delete-history-button").addEventListener('click', async (e) => {
 
-          remove("history", "history-table");
+        remove("history", "history-table");
 
     });
 
@@ -796,5 +815,18 @@ window.onload = async function () {
     document.getElementById("connect-dialog").showModal();
 
     activateTabs('tabs', 'search-panel', 'tab1');
+
+    window.idleState = false;
+ 
+    window.timer = setTimeout(function () {
+        detectActivity();
+    }, TIME_OUT_VALUE);
+
+    document.addEventListener("mousedown", function () {
+        console.log("Clearing idle state");
+
+        window.idleState = false;
+
+    });
 
 }
