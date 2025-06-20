@@ -7,7 +7,7 @@ var cursorPosition = null;
 
 var MAX_ITEMS = 99;
 
-var TIME_OUT_VALUE = 180000;
+var TIME_OUT_VALUE = 3600000;
 
 function showError(message) {
 
