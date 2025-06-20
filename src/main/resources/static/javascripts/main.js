@@ -7,7 +7,7 @@ var cursorPosition = null;
 
 var MAX_ITEMS = 99;
 
-var TIME_OUT_VALUE = 3600000;
+var TIME_OUT_VALUE = 10000;
 
 function showError(message) {
 
@@ -16,13 +16,24 @@ function showError(message) {
 
 }
 
-function detectActivity() {
+async function detectActivity() {
 
-    if (window.idleState = true) {
-        document.getElementById("cancel-connect-dialog").style.visibility = "visible";
-        document.getElementById("connect-dialog").showModal();
+  
+    if (window.idleState == true) {
+
+        var message = new Message();
+
+        var result = await message.status(window.ldapURL);
+
+        console.log(JSON.stringify(result));
+
+        if (result.response != 1) {
+            document.getElementById("cancel-connect-dialog").style.visibility = "visible";
+            document.getElementById("connect-dialog").showModal();
+
+        }
+
     } else {
-        console.log("Setting idle state");
 
         window.idleState = true;
         window.clearTimeout(window.timer);
@@ -618,15 +629,23 @@ window.onload = async function () {
             document.getElementById("viewer-status").innerHTML = `<b>Connected:&nbsp;</b>${window.storageKey}`;
             window.ldapURL = ldapUrl;
 
+            document.getElementById("search-argument").value = "";
+            document.getElementById("search-navigate-dn").textContent = "";
             document.getElementById("search-results").innerHTML = "";
             document.getElementById("artifacts-container").innerHTML = "";
-            document.getElementById("artifact-view").innerHTML = "";
+            document.getElementById("artifact-entry-attribute").innerHTML = "";
+            document.getElementById("artifact-entry-view").innerHTML = "";
+
             document.getElementById("search-navigate-forward").disabled = true;
 
             setup("history", "history-table");
             setup("bookmarks", "bookmarks-table");
 
             document.getElementById("wait-dialog").close();
+
+            window.idleState = false;
+
+            detectActivity();
 
         } catch (exception) {
             showError(`Server Error: ${exception.response}`);
@@ -708,7 +727,6 @@ window.onload = async function () {
             cell.style.whiteSpace = "nowrap";
 
             cell.innerHTML = document.getElementById("selected-dn").innerText;
-
 
         }
 
@@ -821,15 +839,8 @@ window.onload = async function () {
 
     activateTabs('tabs', 'search-panel', 'tab1');
 
-    window.idleState = false;
- 
-    window.timer = setTimeout(function () {
-        detectActivity();
-    }, TIME_OUT_VALUE);
-
     document.addEventListener("mousedown", function () {
-        console.log("Clearing idle state");
-
+  
         window.idleState = false;
 
     });
