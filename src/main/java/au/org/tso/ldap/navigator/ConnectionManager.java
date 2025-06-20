@@ -16,6 +16,10 @@ import org.springframework.stereotype.Component;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class ConnectionManager {
 
+    static final int NO_CONNECTION = -1;
+    static final int NOT_CONNECTED = 0;
+    static final int CONNECTED = 1;
+
     static final Map<String, LdapConnection> connections = new LinkedHashMap<>();
 
     public ConnectionManager() throws Exception {
@@ -117,6 +121,27 @@ public class ConnectionManager {
         connections.put(key, factory.newLdapConnection());
 
         logger.info("Reconnection complete: " + properties.get("key"));
+
+    }
+
+    int status(String url) throws Exception {
+        var logger = LoggerFactory.getLogger(ConnectionManager.class);
+
+        HashMap<String, String> properties = parse(url);
+        String key = properties.get("key");
+
+        logger.info("Connecting... " + key);
+
+        if (connections.containsKey(key)) {
+            logger.info("(Status) Found Connection: " + connections.get(key).toString());
+
+            LdapConnection connection = connections.get(key);
+
+            return connection.isConnected() ? CONNECTED : NOT_CONNECTED;
+
+        }
+
+        return NO_CONNECTION;
 
     }
 
