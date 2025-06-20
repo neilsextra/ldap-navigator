@@ -74,6 +74,15 @@ public class Navigator {
 
 	}
 
+	@GetMapping("/status")
+		String status(@RequestParam("url") String url) throws Exception {
+		
+		connectionManager.parse(url);
+
+		return Integer.toString(connectionManager.status(url));
+
+	}
+
 	@GetMapping("/search")
 	SearchResponse search(@RequestParam("url") String url, @RequestParam("argument") String argument) throws Exception {
 		var logger = LoggerFactory.getLogger(Navigator.class);
@@ -106,7 +115,6 @@ public class Navigator {
 		return response;
 
 	}
-
 
 	@GetMapping("/retrieve")
 	Vector<Map<String, String>> retrieve(@RequestParam("url") String url, @RequestParam("argument") String argument)
