@@ -1,17 +1,21 @@
 package au.org.tso.ldap.navigator;
 
+import static au.org.tso.ldap.navigator.util.AttributeUtils.bytesToHex;
+import static au.org.tso.ldap.navigator.util.AttributeUtils.isHumanReadable;
+
 import java.util.Map;
 import java.util.Vector;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.directory.api.ldap.model.cursor.EntryCursor;
 import org.apache.directory.api.ldap.model.cursor.SearchCursor;
 import org.apache.directory.api.ldap.model.entry.Entry;
+import org.apache.directory.api.ldap.model.entry.Value;
 import org.apache.directory.api.ldap.model.entry.Attribute;
 import org.apache.directory.api.ldap.model.message.Control;
 import org.apache.directory.api.ldap.model.message.ResultCodeEnum;
@@ -47,24 +51,6 @@ public class DirectoryExplorer {
     public DirectoryExplorer() {
     }
 
-    private String bytesToHex(byte[] bytes) {
-        StringBuilder sb = new StringBuilder();
-        for (byte b : bytes) {
-            sb.append(String.format("%02x", b));
-        }
-
-        return sb.toString();
-
-    }
-
-    boolean isHumanReadable(String value) {
-        Pattern pattern = Pattern.compile("[^\\p{ASCII}]", Pattern.CASE_INSENSITIVE);
-        Matcher matcher = pattern.matcher(value);
-        boolean matchFound = matcher.find();
-
-        return (!matchFound);
-
-    }
 
     SearchResponse search(LdapConnection connection, final String dn) throws Exception {
         var logger = LoggerFactory.getLogger(DirectoryExplorer.class);
@@ -92,7 +78,7 @@ public class DirectoryExplorer {
             throw e;
         }
 
-       PagedResults pagedControl = new PagedResultsImpl();
+        PagedResults pagedControl = new PagedResultsImpl();
 
         pagedControl.setSize(pageSize);
 
@@ -104,7 +90,7 @@ public class DirectoryExplorer {
         searchRequest.addControl(pagedControl);
 
         try (SearchCursor cursor = connection.search(searchRequest)) {
-   
+
             while (cursor.next()) {
                 Entry entry = cursor.getEntry();
 
@@ -120,7 +106,7 @@ public class DirectoryExplorer {
                 PagedResults responseControl = (PagedResults) controls.get(PagedResults.OID);
 
                 if (responseControl != null) {
-                    cursorPosition.append(Base64.getEncoder().encodeToString(responseControl.getCookie()));    
+                    cursorPosition.append(Base64.getEncoder().encodeToString(responseControl.getCookie()));
                 }
 
             }
@@ -139,7 +125,6 @@ public class DirectoryExplorer {
     }
 
     SearchResponse next(LdapConnection connection, String dn, String cursorPosition) throws Exception {
-        var logger = LoggerFactory.getLogger(DirectoryExplorer.class);
 
         final List<String> entries = new ArrayList<>();
         final StringBuffer nextCursorPosition = new StringBuffer();
@@ -153,9 +138,9 @@ public class DirectoryExplorer {
         searchRequest.setFilter("(objectclass=*)");
         searchRequest.setScope(SearchScope.SUBTREE);
         searchRequest.addControl(pageControl);
-    
+
         try (SearchCursor cursor = connection.search(searchRequest)) {
-           while (cursor.next()) {
+            while (cursor.next()) {
                 Entry entry = cursor.getEntry();
                 entries.add(entry.getDn().toString());
 
@@ -210,22 +195,32 @@ public class DirectoryExplorer {
                         ? schemaAttributes.get(attribute.getId()).getSyntaxOid()
                         : " ";
 
+                System.out.println("Name: " + attribute.getUpId());
+                
                 properties.put("name", attribute.getUpId());
                 properties.put("oid", oid == null ? "" : oid);
                 properties.put("SyntaxOid", syntaxOid == null ? "" : syntaxOid == null ? "" : syntaxOid);
                 properties.put("type", isHumanReadable(attribute.get().getString()) ? "String" : "Binary");
 
-                if (isHumanReadable(attribute.get().getString())) {
-                    properties.put("type", "String");
-                    properties.put("value", attribute.get().getString());
+                Iterator<Value> iterator = attribute.iterator();
 
-                } else {
-                    properties.put("type", "Binary");
-                    properties.put("value", bytesToHex(attribute.get().getBytes()));
+                while ( iterator.hasNext() ) {
+                    Map<String, String> values = new HashMap<String, String>(properties);
+                    Value value = iterator.next();
+
+                      if (isHumanReadable(value.getString())) {
+                        values.put("type", "String");
+                        values.put("value", value.getString());
+
+                    } else {
+                        values.put("type", "Binary");
+                        values.put("value", bytesToHex(value.getBytes()));
+
+                    }
+
+                    attributes.add(values);
 
                 }
-
-                attributes.add(properties);
 
             }
 
