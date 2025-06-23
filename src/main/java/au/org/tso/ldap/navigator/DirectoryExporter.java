@@ -1,20 +1,16 @@
 package au.org.tso.ldap.navigator;
 
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import static au.gov.sa.euc.ldap.navigator.util.AttributeUtils.isHumanReadable;
 
-import org.apache.directory.api.ldap.model.entry.Attribute;
+import java.util.Iterator;
+import java.util.Map;
+
 import org.apache.directory.api.ldap.model.entry.Entry;
+import org.apache.directory.api.ldap.model.entry.Value;
+import org.apache.directory.api.ldap.model.entry.Attribute;
 import org.apache.directory.api.ldap.model.schema.AttributeType;
 import org.apache.directory.ldap.client.api.LdapConnection;
-import org.bouncycastle.asn1.ASN1Encodable;
-import org.bouncycastle.asn1.ASN1EncodableVector;
-import org.bouncycastle.asn1.ASN1ObjectIdentifier;
-import org.bouncycastle.asn1.ASN1Sequence;
-import org.bouncycastle.asn1.DEROctetString;
-import org.bouncycastle.asn1.DERSequence;
-import org.bouncycastle.asn1.DERUTF8String;
+import org.bouncycastle.asn1.*;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -24,25 +20,6 @@ public class DirectoryExporter {
 
     @Autowired
     SchemaExplorer schemaExplorer;
-
-    String bytesToHex(byte[] bytes) {
-        StringBuilder sb = new StringBuilder();
-        for (byte b : bytes) {
-            sb.append(String.format("%02x", b));
-        }
-
-        return sb.toString();
-
-    }
-
-    boolean isHumanReadable(String value) {
-        Pattern pattern = Pattern.compile("[^\\p{ASCII}]", Pattern.CASE_INSENSITIVE);
-        Matcher matcher = pattern.matcher(value);
-        boolean matchFound = matcher.find();
-
-        return (!matchFound);
-
-    }
 
     public byte[] export(LdapConnection connection, String dn) throws Exception {
         var logger = LoggerFactory.getLogger(DirectoryExplorer.class);
@@ -64,17 +41,26 @@ public class DirectoryExporter {
             if (schemaAttributes.containsKey(attribute.getId())) {
                 String attributeName = attribute.getUpId();
 
-                ASN1ObjectIdentifier oid = new ASN1ObjectIdentifier(schemaAttributes.get(attribute.getId()).getOid());
+                Iterator<Value> iterator = attribute.iterator();
 
-                if (attribute.isHumanReadable()) {
-                    attributeVector.add(new DERSequence(new ASN1Encodable[] {
-                            new DERUTF8String(attributeName), oid, new DERUTF8String(attribute.getString())
-                    }));
+                while (iterator.hasNext()) {
+                    Value value = iterator.next();
 
-                } else {
-                    attributeVector.add(new DERSequence(new ASN1Encodable[] {
-                            new DERUTF8String(attributeName), oid, new DEROctetString(attribute.getBytes())
-                    }));
+                    if (isHumanReadable(value.getString())) {
+                        attributeVector.add(new DERSequence(new ASN1Encodable[] {
+                                new DERUTF8String(attributeName),
+                                new ASN1ObjectIdentifier(schemaAttributes.get(attribute.getId()).getOid()),
+                                new DERUTF8String(value.getString())
+                        }));
+
+                    } else {
+                        attributeVector.add(new DERSequence(new ASN1Encodable[] {
+                                new DERUTF8String(attributeName),
+                                new ASN1ObjectIdentifier(schemaAttributes.get(attribute.getId()).getOid()),
+                                new DEROctetString(value.getBytes())
+                        }));
+                    }
+
                 }
 
             }
@@ -84,7 +70,7 @@ public class DirectoryExporter {
         ASN1Sequence attributeSequence = new DERSequence(attributeVector);
 
         logger.info("Export '" + dn + "' - successful");
-        
+
         return attributeSequence.getEncoded();
 
     }
