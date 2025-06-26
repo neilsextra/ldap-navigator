@@ -72,6 +72,11 @@ function hex2Char(value) {
 
 }
 
+function printHexZeroFill(number, length) {
+  let hexString = number.toString(16);
+  return hexString.padStart(length, '0').toUpperCase();
+}
+
 function copyToClipboard(type, value) {
 
     function formatHex(value) {
@@ -108,6 +113,7 @@ function copyToClipboard(type, value) {
             charValues += `${hexToByte(hex[iHex])}`;
 
             if (iPos % 16 == 0) {
+                output += `${printHexZeroFill(iPos, 8)} | `;
                 output += hexValues;
 
                 output += charValues;
@@ -121,6 +127,7 @@ function copyToClipboard(type, value) {
         }
 
         if (iHex % 16 != 0) {
+            output += `${printHexZeroFill(iPos, 8)} | `;
             output += hexValues;
 
             for (var iCount = 0; iPos % 16 != 0; iPos++, iCount++) {
@@ -474,12 +481,12 @@ async function showAttributes(result) {
 
                 iPos += 1;
 
-                hexValues += `<td>${hex[iHex]}&nbsp|&nbsp</td>`;
+                hexValues += `<td>${hex[iHex]}&nbsp;|&nbsp;</td>`;
                 charValues += `<td>${hexToByte(hex[iHex])}</td>`;
 
                 if (iPos % 16 == 0) {
+                    html += `<td>${printHexZeroFill(iPos, 8)}&nbsp;|&nbsp;</td>`;
                     html += hexValues;
-
                     html += charValues;
 
 
@@ -492,6 +499,7 @@ async function showAttributes(result) {
             }
 
             if (iHex % 16 != 0) {
+                html += `<td>${printHexZeroFill(iPos, 8)}&nbsp;|&nbsp;</td>`;
                 html += hexValues;
 
                 for (var iCount = 0; iPos % 16 != 0; iPos++, iCount++) {
