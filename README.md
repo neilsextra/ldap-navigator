@@ -25,7 +25,7 @@ Example
 `ldap://cn=read-only-admin,dc=example,dc=com@ldap.forumsys.com:389`
 
 ### Password for the above example
-password 
+`password`
 
 Queries
 `ou=mathematicians,dc=example,dc=com`
