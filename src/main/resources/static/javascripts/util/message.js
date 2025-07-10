@@ -74,7 +74,7 @@ function Message() {
 
                 xhttp.onerror = function () {
 
-                    alert("nable to retrieve status");
+                    alert("Unable to retrieve status");
 
                 };
 
