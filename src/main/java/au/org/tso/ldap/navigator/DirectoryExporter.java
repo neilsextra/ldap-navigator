@@ -32,7 +32,7 @@ public class DirectoryExporter {
 
         Map<String, AttributeType> schemaAttributes = schemaExplorer.load(connection);
 
-        Entry entry = connection.lookup(dn);
+        Entry entry = connection.lookup(dn, "*", "+");
 
         if (entry == null) {
             logger.info("Object: '" + dn + "' not Found");
