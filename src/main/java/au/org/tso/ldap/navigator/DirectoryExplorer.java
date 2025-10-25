@@ -1,22 +1,18 @@
 package au.org.tso.ldap.navigator;
 
-import static au.org.tso.ldap.navigator.util.AttributeUtils.bytesToHex;
-import static au.org.tso.ldap.navigator.util.AttributeUtils.isHumanReadable;
-
-import java.util.Map;
-import java.util.Vector;
-
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Vector;
 
 import org.apache.directory.api.ldap.model.cursor.EntryCursor;
 import org.apache.directory.api.ldap.model.cursor.SearchCursor;
+import org.apache.directory.api.ldap.model.entry.Attribute;
 import org.apache.directory.api.ldap.model.entry.Entry;
 import org.apache.directory.api.ldap.model.entry.Value;
-import org.apache.directory.api.ldap.model.entry.Attribute;
 import org.apache.directory.api.ldap.model.message.Control;
 import org.apache.directory.api.ldap.model.message.ResultCodeEnum;
 import org.apache.directory.api.ldap.model.message.SearchRequest;
@@ -30,6 +26,9 @@ import org.apache.directory.ldap.client.api.LdapConnection;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import static au.org.tso.ldap.navigator.util.AttributeUtils.bytesToHex;
+import static au.org.tso.ldap.navigator.util.AttributeUtils.isHumanReadable;
 
 @Component
 public class DirectoryExplorer {
@@ -179,7 +178,7 @@ public class DirectoryExplorer {
         Map<String, AttributeType> schemaAttributes = schemaExplorer.load(connection);
 
         try {
-            Entry entry = connection.lookup(dn);
+            Entry entry = connection.lookup(dn,"*", "+");
 
             if (entry == null) {
                 logger.info("Entry is NULL");
