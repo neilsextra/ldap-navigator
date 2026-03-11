@@ -48,7 +48,7 @@ public class Navigator {
 		// default handler, in case the exception is not catch by any other catch method
 		@ExceptionHandler(Exception.class)
 		public ResponseEntity<String> handleGenericException(Exception ex) {
-			var logger = LoggerFactory.getLogger(Navigator.class);
+			var logger = LoggerFactory.getLogger(getClass());
 			logger.error(ex.getMessage());
 
 			return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -85,7 +85,7 @@ public class Navigator {
 
 	@GetMapping("/search")
 	SearchResponse search(@RequestParam("url") String url, @RequestParam("argument") String argument) throws Exception {
-		var logger = LoggerFactory.getLogger(Navigator.class);
+		var logger = LoggerFactory.getLogger(getClass());
 
 		logger.info("Search Started: '" + argument + "'");
 
@@ -102,7 +102,7 @@ public class Navigator {
 	@GetMapping("/next")
 	SearchResponse next(@RequestParam("url") String url, @RequestParam("argument") String argument,
 			@RequestParam("cursorPosition") String cursorPosition) throws Exception {
-		var logger = LoggerFactory.getLogger(Navigator.class);
+		var logger = LoggerFactory.getLogger(getClass());
 
 		logger.info("Next Started: '" + argument + "' - '" + cursorPosition +"'");
 
@@ -119,7 +119,7 @@ public class Navigator {
 	@GetMapping("/retrieve")
 	Vector<Map<String, String>> retrieve(@RequestParam("url") String url, @RequestParam("argument") String argument)
 			throws Exception {
-		var logger = LoggerFactory.getLogger(Navigator.class);
+		var logger = LoggerFactory.getLogger(getClass());
 
 		logger.info("Retrieve Started");
 
@@ -135,7 +135,7 @@ public class Navigator {
 
 	@GetMapping("/export")
 	byte[] export(@RequestParam("url") String url, @RequestParam("dn") String dn) throws Exception {
-		var logger = LoggerFactory.getLogger(Navigator.class);
+		var logger = LoggerFactory.getLogger(getClass());
 
 		logger.info("Export Started");
 
