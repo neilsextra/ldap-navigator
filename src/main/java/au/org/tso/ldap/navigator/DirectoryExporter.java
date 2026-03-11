@@ -28,7 +28,7 @@ public class DirectoryExporter {
     SchemaExplorer schemaExplorer;
 
     public byte[] export(LdapConnection connection, String dn) throws Exception {
-        var logger = LoggerFactory.getLogger(DirectoryExplorer.class);
+        var logger = LoggerFactory.getLogger(getClass());
 
         Map<String, AttributeType> schemaAttributes = schemaExplorer.load(connection);
 
