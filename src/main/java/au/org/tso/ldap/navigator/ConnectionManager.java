@@ -46,7 +46,7 @@ public class ConnectionManager {
     }
 
     LdapConnection connect(String url) throws Exception {
-        var logger = LoggerFactory.getLogger(ConnectionManager.class);
+        var logger = LoggerFactory.getLogger(getClass());
         HashMap<String, String> properties = parse(url);
         String key = properties.get("key");
 
@@ -88,7 +88,7 @@ public class ConnectionManager {
 
     void reconnect(String url) throws Exception {
         HashMap<String, String> properties = parse(url);
-        var logger = LoggerFactory.getLogger(ConnectionManager.class);
+        var logger = LoggerFactory.getLogger(getClass());
         String key = properties.get("key");
 
         logger.info("Reconnecting... " + properties.get("username"));
@@ -125,7 +125,7 @@ public class ConnectionManager {
     }
 
     int status(String url) throws Exception {
-        var logger = LoggerFactory.getLogger(ConnectionManager.class);
+        var logger = LoggerFactory.getLogger(getClass());
 
         HashMap<String, String> properties = parse(url);
         String key = properties.get("key");
