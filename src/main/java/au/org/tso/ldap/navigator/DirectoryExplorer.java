@@ -53,7 +53,7 @@ public class DirectoryExplorer {
 
 
     SearchResponse search(LdapConnection connection, final String dn) throws Exception {
-        var logger = LoggerFactory.getLogger(DirectoryExplorer.class);
+        var logger = LoggerFactory.getLogger(getClass());
 
         List<String> entries = new ArrayList<>();
         final StringBuffer cursorPosition = new StringBuffer();
