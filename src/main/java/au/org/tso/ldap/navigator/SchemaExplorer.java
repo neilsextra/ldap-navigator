@@ -20,7 +20,7 @@ public class SchemaExplorer {
     }
 
     Map<String, AttributeType> load(LdapConnection connection) throws Exception {
-        var logger = LoggerFactory.getLogger(SchemaExplorer.class);
+        var logger = LoggerFactory.getLogger(getClass());
 
          Map<String, AttributeType> attributes = new HashMap<String, AttributeType>();
 
