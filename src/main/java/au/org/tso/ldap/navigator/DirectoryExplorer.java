@@ -174,7 +174,7 @@ public class DirectoryExplorer {
 
     Vector<Map<String, String>> retrieve(LdapConnection connection, String dn) throws Exception {
         Vector<Map<String, String>> attributes = new Vector<Map<String, String>>();
-        var logger = LoggerFactory.getLogger(DirectoryExplorer.class);
+        var logger = LoggerFactory.getLogger(getClass());
 
         Map<String, AttributeType> schemaAttributes = schemaExplorer.load(connection);
 
