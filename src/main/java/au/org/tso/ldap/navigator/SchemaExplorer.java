@@ -13,14 +13,22 @@ import org.apache.directory.api.ldap.model.schema.AttributeType;
 import org.apache.directory.api.ldap.model.schema.SchemaObjectWrapper;
 import org.apache.directory.api.ldap.model.schema.registries.Schema;
 
+/**
+ * Schema Explorer
+ * 
+ * Manages the directory schema
+ */
 @Component
 public class SchemaExplorer {
 
+    /**
+     * Schema Explorer constructor
+     */
     public SchemaExplorer() {
     }
 
     Map<String, AttributeType> load(LdapConnection connection) throws Exception {
-        var logger = LoggerFactory.getLogger(getClass());
+        var logger = LoggerFactory.getLogger(SchemaExplorer.class);
 
          Map<String, AttributeType> attributes = new HashMap<String, AttributeType>();
 
@@ -30,9 +38,6 @@ public class SchemaExplorer {
             Collection<Schema> schemas = schemaLoader.getAllSchemas();
 
             for (Schema schema : schemas) {
-
-                logger.info("Schema: '" + schema.getSchemaName() + "' - loaded");
-
                 Set<SchemaObjectWrapper> content = schema.getContent();
 
                 for (var attribute : content) {
