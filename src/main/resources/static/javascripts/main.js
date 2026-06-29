@@ -18,12 +18,12 @@ function showError(message) {
 
 async function detectActivity() {
 
-  
+
     if (window.idleState == true) {
 
-        var message = new Message();
+        var message = new Message(window.ldapURL, document.getElementById("ldap-password").value);
 
-        var result = await message.status(window.ldapURL);
+        var result = await message.status();
 
         console.log(JSON.stringify(result));
 
@@ -73,8 +73,8 @@ function hex2Char(value) {
 }
 
 function printHexZeroFill(number, length) {
-  let hexString = number.toString(16);
-  return hexString.padStart(length, '0').toUpperCase();
+    let hexString = number.toString(16);
+    return hexString.padStart(length, '0').toUpperCase();
 }
 
 function copyToClipboard(type, value) {
@@ -198,8 +198,8 @@ async function search(dn) {
     document.getElementById("wait-dialog").showModal();
 
     try {
-        var message = new Message();
-        var result = await message.search(window.ldapURL, dn);
+        var message = new Message(window.ldapURL, document.getElementById("ldap-password").value);
+        var result = await message.search(dn, document.getElementById("retrieval-limit").value);
 
         var html = "<table class='result-table'>";
         var items = 0;
@@ -210,24 +210,7 @@ async function search(dn) {
                 `<td class='result-table-item' style="white-space: nowrap; text-wrap: nowrap;">` +
                 `${result.response.results[dn]}</td></tr>`;
             items += 1;
-
         }
-
-        if (result.response.cursorPosition.length > 0) {
-            cursorPosition = result.response.cursorPosition;
-            document.getElementById("search-navigate-forward").disabled = false;
-        } else {
-            cursorPosition = null;
-
-            if (items < MAX_ITEMS - 1) {
-                document.getElementById("search-navigate-forward").disabled = true;
-            } else {
-                document.getElementById("search-navigate-forward").disabled = false;
-            }
-
-        }
-
-        document.getElementById("search-navigate-refresh").disabled = false;
 
         document.getElementById("search-navigate-dn").textContent = result.response.dn;
         document.getElementById("search-results").innerHTML = html;
@@ -240,52 +223,6 @@ async function search(dn) {
 
         document.getElementById("wait-dialog").close();
 
-    }
-
-}
-
-async function forward(dn, cursorPosition) {
-
-    document.getElementById("wait-dialog").showModal();
-
-    var message = new Message();
-    var result = await message.next(window.ldapURL, dn, cursorPosition);
-
-    var html = "<table class='result-table'>";
-
-    var items = 0;
-
-    for (var dn in result.response.results) {
-
-        html += `<tr onclick="window.select('${result.response.results[dn]}')">` +
-            `<td class='result-table-item' style="white-space: nowrap; text-wrap: nowrap;">` +
-            `${result.response.results[dn]}</td></tr>`;
-
-        items += 1;
-
-    }
-
-    if (items < MAX_ITEMS) {
-        document.getElementById("search-navigate-forward").disabled = true;
-    }
-
-    cursorPosition = result.response.cursorPosition;
-
-    document.getElementById("search-navigate-dn").textContent = result.response.dn;
-    document.getElementById("search-results").innerHTML = html;
-
-    document.getElementById("wait-dialog").close();
-
-}
-
-async function backward() {
-
-    rowCount -= 1000;
-
-    rowCount = await getSearchResults(rowCount)
-
-    if (rowCount <= 1000) {
-        document.getElementById("search-navigate-left").disabled = true;
     }
 
 }
@@ -552,11 +489,11 @@ async function select(dn) {
     document.getElementById("selected-dn").innerHTML = `${dn}`;
     document.getElementById("wait-dialog").showModal();
 
-    var message = new Message();
+    var message = new Message(window.ldapURL, document.getElementById("ldap-password").value);
 
     try {
 
-        attributes = await message.retrieve(window.ldapURL, dn);
+        attributes = await message.retrieve(dn);
 
         showAttributes(attributes);
 
@@ -592,6 +529,11 @@ async function select(dn) {
 
     } catch (exception) {
 
+        console.log(exception);
+        if (exception.trace) {
+            console.log(exception.trace);
+        }
+
         showError(`Server Error: ${exception.response}`);
 
         document.getElementById("wait-dialog").close();
@@ -621,21 +563,21 @@ window.onload = async function () {
     }
 
     document.getElementById("ok-connect-dialog").addEventListener('click', async (e) => {
-        var message = new Message();
-
         try {
 
             document.getElementById("wait-dialog").showModal();
 
-            var urlParts = document.getElementById("ldap-url").value.split("@");
-            var ldapUrl = urlParts[0] + ":" + document.getElementById("ldap-password").value + "@" + urlParts[1];
+            console.log(`${document.getElementById("ldap-url").value} : ${document.getElementById("ldap-password").value}`);
 
-            var result = await message.connect(ldapUrl);
+            var message = new Message(document.getElementById("ldap-url").value,
+                document.getElementById("ldap-password").value);
+
+            var result = await message.connect();
 
             document.getElementById("connect-dialog").close();
             window.storageKey = result.response.host + ":" + result.response.port + "@" + result.response.username;
             document.getElementById("viewer-status").innerHTML = `<b>Connected:&nbsp;</b>${window.storageKey}`;
-            window.ldapURL = ldapUrl;
+            window.ldapURL = document.getElementById("ldap-url").value;
 
             document.getElementById("search-argument").value = "";
             document.getElementById("search-navigate-dn").textContent = "";
@@ -643,8 +585,6 @@ window.onload = async function () {
             document.getElementById("artifacts-container").innerHTML = "";
             document.getElementById("artifact-entry-attribute").innerHTML = "";
             document.getElementById("artifact-entry-view").innerHTML = "";
-
-            document.getElementById("search-navigate-forward").disabled = true;
 
             setup("history", "history-table");
             setup("bookmarks", "bookmarks-table");
@@ -656,6 +596,10 @@ window.onload = async function () {
             detectActivity();
 
         } catch (exception) {
+            console.log(exception);
+            if (exception.trace) {
+                console.log(exception.trace);
+            }
             showError(`Server Error: ${exception.response}`);
             document.getElementById("wait-dialog").close();
         }
@@ -665,18 +609,6 @@ window.onload = async function () {
     document.getElementById("search-button").addEventListener('click', (e) => {
 
         search(document.getElementById("search-argument").value);
-
-    });
-
-    document.getElementById("search-navigate-refresh").addEventListener('click', (e) => {
-
-        search(document.getElementById("search-navigate-dn").textContent);
-
-    });
-
-    document.getElementById("search-navigate-forward").addEventListener('click', (e) => {
-
-        forward(document.getElementById("search-navigate-dn").textContent, cursorPosition);
 
     });
 
@@ -754,10 +686,8 @@ window.onload = async function () {
 
     document.getElementById("dn-download-button").addEventListener('click', async (e) => {
         var fileUtil = new FileUtil(document);
-        var message = new Message();
-
-        var blob = await message.export(window.ldapURL,
-            document.getElementById("selected-dn").innerText);
+        var message = new Message(window.ldapURL, document.getElementById("ldap-password").value);
+        var blob = await message.export(document.getElementById("selected-dn").innerText);
 
         fileUtil.saveAs(blob, document.getElementById("selected-dn").innerText + ".asn1");
 
@@ -843,12 +773,17 @@ window.onload = async function () {
 
     });
 
+    
+    document.getElementById(`retrieval-limit`).addEventListener('input', function (event) {
+        document.getElementById(`retrieval-limit-value`).textContent = event.target.value;
+    });
+
     document.getElementById("connect-dialog").showModal();
 
     activateTabs('tabs', 'search-panel', 'tab1');
 
     document.addEventListener("mousedown", function () {
-  
+
         window.idleState = false;
 
     });
