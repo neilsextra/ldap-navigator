@@ -31,12 +31,10 @@ h1 {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-
 .entry {
     font-size: 12px;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
-
 
 .status-message {
     font-size: 12px;
@@ -44,6 +42,17 @@ h1 {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
+.retrieval-limit-container {
+    font-size: 12px;
+     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.retrieval-slider-options {
+  display: flex;                 
+  flex-direction: row;          
+  justify-content: space-evenly; 
+  width: 100%;                   
+}
 .search:hover {
     cursor: pointer;
     border: 1px solid rgba(0, 0, 0, 0.3);
