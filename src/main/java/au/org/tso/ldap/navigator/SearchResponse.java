@@ -1,22 +1,18 @@
 package au.org.tso.ldap.navigator;
 
-import java.util.List;
+import java.util.Set;
 
 class SearchResponse implements DirectoryExplorer.ResultContainer {
-    List<String> results;
+    Set<String> results;
     String dn;
-    String cursorPosition;
     
-    SearchResponse(List<String> results, String dn, String cursorPosition) {
-
+    SearchResponse(Set<String> results, String dn) {
         this.results = results;
         this.dn = dn;
-        this.cursorPosition = cursorPosition;
-
     }
 
 	@Override
-	public List<String> getResults() {
+	public Set<String> getResults() {
 
         return results;
 
@@ -26,13 +22,6 @@ class SearchResponse implements DirectoryExplorer.ResultContainer {
 	public String getDn() {
 
         return dn;
-
-    }
-
-	@Override
-	public String getCursorPosition() {
-
-        return cursorPosition;
 
     }
     
