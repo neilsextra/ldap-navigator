@@ -12,6 +12,11 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+/**
+ * ConnectionManager
+ * 
+ * Manages the directory connections
+ */
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class ConnectionManager {
@@ -22,21 +27,34 @@ public class ConnectionManager {
 
     static final Map<String, LdapConnection> connections = new LinkedHashMap<>();
 
-    public ConnectionManager() throws Exception {
+    /**
+     * Connection Manager constructor
+     */
+    public ConnectionManager() {
     }
 
+    /**
+     * Parse the directory URL
+     * 
+     * @param url the directory url
+     * @return the directory url parts
+     * @throws Exception the url does meet the protocol
+     */
     HashMap<String, String> parse(String url) throws Exception {
         HashMap<String, String> properties = new HashMap<>();
 
         String[] parts = url.split("/|:|@");
 
-        if (parts.length == 7) {
+        if (parts.length == 6) {
             properties.put("protocol", parts[0]);
             properties.put("username", parts[3]);
-            properties.put("password", parts[4]);
-            properties.put("host", parts[5]);
-            properties.put("port", parts[6]);
-            properties.put("key", parts[3] + "@" + parts[5] + ":" + parts[6]);
+            properties.put("host", parts[4]);
+            properties.put("port", parts[5]);
+            properties.put("key", parts[3] + "@" + parts[4] + ":" + parts[5]);
+
+            System.out.println("URL: " + 
+                    parts[0] + " - " + parts[3] + " - " + parts[4] + " - " + parts[5] + " - " + properties.get("key"));
+
         } else {
             throw new Exception("Invalid URL");
         }
@@ -45,8 +63,8 @@ public class ConnectionManager {
 
     }
 
-    LdapConnection connect(String url) throws Exception {
-        var logger = LoggerFactory.getLogger(getClass());
+    LdapConnection connect(String url, String password) throws Exception {
+        var logger = LoggerFactory.getLogger(ConnectionManager.class);
         HashMap<String, String> properties = parse(url);
         String key = properties.get("key");
 
@@ -70,7 +88,7 @@ public class ConnectionManager {
         config.setLdapHost(properties.get("host"));
         config.setLdapPort(Integer.parseInt(properties.get("port")));
         config.setName(properties.get("username"));
-        config.setCredentials(properties.get("password"));
+        config.setCredentials(password);
 
         DefaultLdapConnectionFactory factory = new DefaultLdapConnectionFactory(config);
 
@@ -88,7 +106,7 @@ public class ConnectionManager {
 
     void reconnect(String url) throws Exception {
         HashMap<String, String> properties = parse(url);
-        var logger = LoggerFactory.getLogger(getClass());
+        var logger = LoggerFactory.getLogger(ConnectionManager.class);
         String key = properties.get("key");
 
         logger.info("Reconnecting... " + properties.get("username"));
@@ -125,7 +143,7 @@ public class ConnectionManager {
     }
 
     int status(String url) throws Exception {
-        var logger = LoggerFactory.getLogger(getClass());
+        var logger = LoggerFactory.getLogger(ConnectionManager.class);
 
         HashMap<String, String> properties = parse(url);
         String key = properties.get("key");
