@@ -6,7 +6,816 @@ var attributes = null;
 var cursorPosition = null;
 
 var MAX_ITEMS = 99;
+'use strict'
 
+var tableView = null;
+var attributes = null;
+
+var cursorPosition = null;
+
+var MAX_ITEMS = 99;
+
+var TIME_OUT_VALUE = 10000;
+
+function showError(message) {
+
+    document.getElementById("error-message").innerHTML = message;
+    document.getElementById("error-dialog").showModal();
+
+}
+
+async function detectActivity() {
+
+    if (window.idleState == true) {
+
+        var message = new Message(window.ldapURL, document.getElementById("ldap-password").value);
+
+        var result = await message.status();
+
+        console.log(JSON.stringify(result));
+
+        if (result.response != 1) {
+            document.getElementById("cancel-connect-dialog").style.visibility = "visible";
+            document.getElementById("connect-dialog").showModal();
+
+        }
+
+    } else {
+
+        window.idleState = true;
+        window.clearTimeout(window.timer);
+        window.timer = setTimeout(function () {
+            detectActivity();
+        }, TIME_OUT_VALUE);
+
+    }
+
+}
+
+function hex2Char(value) {
+    const hexToByte = (hex) => {
+        var value = parseInt(`0x${hex}`, 16)
+        var output = value >= 32 && value <= 127 ? String.fromCharCode(value) : ".";
+
+        return output;
+
+    }
+
+    var hex = [];
+
+    for (var iChar = 0; iChar < value.length; iChar += 2) {
+
+        hex.push(value.substring(iChar, iChar + 2));
+
+    }
+
+    var output = "";
+
+    for (var iHex = 0; iHex < hex.length; iHex++) {
+        output += `${hexToByte(hex[iHex])}`;
+    }
+
+    return output;
+
+}
+
+function printHexZeroFill(number, length) {
+    let hexString = number.toString(16);
+    return hexString.padStart(length, '0').toUpperCase();
+}
+
+function copyToClipboard(type, value) {
+
+    function formatHex(value) {
+
+        const hexToByte = (hex) => {
+            var value = parseInt(`0x${hex}`, 16)
+            var output = value >= 32 && value <= 127 ? String.fromCharCode(value) : ".";
+
+            return output;
+
+        }
+
+        var hex = [];
+
+        for (var iChar = 0; iChar < value.length; iChar += 2) {
+
+            hex.push(value.substring(iChar, iChar + 2));
+
+        }
+
+        var hexValues = "";
+        var charValues = "";
+
+        var iHex = 0;
+        var iPos = 0
+
+        var output = "";
+
+        for (; iHex < hex.length; iHex++) {
+
+            iPos += 1;
+
+            hexValues += `${hex[iHex]}|`;
+            charValues += `${hexToByte(hex[iHex])}`;
+
+            if (iPos % 16 == 0) {
+                output += `${printHexZeroFill(iPos, 8)} | `;
+                output += hexValues;
+
+                output += charValues;
+
+                output += "\n";
+
+                hexValues = "";
+                charValues = "";
+            }
+
+        }
+
+        if (iHex % 16 != 0) {
+            output += `${printHexZeroFill(iPos, 8)} | `;
+            output += hexValues;
+
+            for (var iCount = 0; iPos % 16 != 0; iPos++, iCount++) {
+
+                output += `${iCount < 16 ? "   " : "|"}`;
+            }
+
+            output += charValues;
+
+            output += ``;
+        }
+
+        return output;
+
+    }
+
+    var decodedValue = atob(value);
+
+    if (type == "Binary") {
+        navigator.clipboard.writeText(formatHex(decodedValue));
+    } else {
+        navigator.clipboard.writeText(decodedValue.replaceAll("&lt;", "<").replaceAll("&gt;", ">"));
+    }
+
+}
+
+function copyToSearch(type, value) {
+
+    document.getElementById("search-argument").value = (type == "Binary") ? hex2Char(value).split('#')[0] : value.split('#')[0];
+
+}
+
+function copyToLaunch(type, value) {
+
+    document.getElementById("search-base").value = (type == "Binary") ? hex2Char(value).split('#')[0] : value.split('#')[0];
+
+    search();
+
+}
+
+function setup(container, table) {
+    var storage = window.localStorage.getItem(`${container}:${window.storageKey}`);
+
+    var table = document.getElementById(table);
+
+    if (storage != null) {
+        var searchHistory = JSON.parse(storage);
+
+        for (var iHistory = 0; iHistory < searchHistory.length; iHistory++) {
+            var row = table.insertRow();
+
+            row.setAttribute("onclick", `window.select('${searchHistory[iHistory]}')`, 0);
+
+            var cell = row.insertCell();
+
+            cell.className = "result-table-item";
+            cell.style.textWrap = "nowrap";
+            cell.style.whiteSpace = "nowrap";
+
+            cell.innerHTML = searchHistory[iHistory];
+        }
+
+    }
+
+}
+
+async function search() {
+
+    const timeoutId = setTimeout(() => {
+        document.getElementById("wait-dialog").showModal();
+    }, 1000);
+
+    try {
+        var message = new Message(window.ldapURL, document.getElementById("ldap-password").value);
+
+        var result = await message.search(
+            document.getElementById("search-base").value,
+            document.getElementById("search-filter").value,
+            document.getElementById("search-scope").value,
+            document.getElementById("retrieval-limit").value);
+
+        var html = "<table class='result-table'>";
+        var items = 0;
+
+        for (var dn in result.response.results) {
+
+            html += `<tr onclick="window.select('${result.response.results[dn]}')">` +
+                `<td class='result-table-item' style="white-space: nowrap; text-wrap: nowrap;">` +
+                `${result.response.results[dn]}</td></tr>`;
+            items += 1;
+        }
+
+        document.getElementById("search-navigate-dn").textContent = result.response.dn;
+        document.getElementById("search-results").innerHTML = html;
+
+        clearTimeout(timeoutId);
+
+        document.getElementById("wait-dialog").close();
+
+    } catch (exception) {
+        clearTimeout(timeoutId);
+
+        console.log(exception);
+        if (exception.trace) {
+            console.log(exception.trace);
+        }
+        document.getElementById("wait-dialog").close();
+        showError(`Server Error: ${exception.response}`);
+
+
+
+    }
+
+}
+
+function find(table, dn) {
+
+    for (var iRow = 0, row; row = table.rows[iRow]; iRow++) {
+
+        for (var iCell = 0, col; col = row.cells[iCell]; iCell++) {
+
+            if (dn.trim() == col.innerText.trim()) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+
+}
+
+function remove(container, tableID) {
+
+    var containerStorage = window.localStorage.getItem(`${container}:${window.storageKey}`);
+    var entries = containerStorage != null ? JSON.parse(containerStorage) : [];
+    var selectedDN = document.getElementById("selected-dn").innerText;
+
+    if (selectedDN.length == 0) {
+        return;
+    }
+
+    var filteredEntries = entries.filter(item => item !== document.getElementById("selected-dn").innerText);
+
+    window.localStorage.setItem(`${container}:${selectedDN}`, JSON.stringify(filteredEntries));
+
+    var table = document.getElementById(tableID);
+
+    var item = -1;
+
+    exit: for (var iRow = 0, row; row = table.rows[iRow]; iRow++) {
+
+        for (var iCell = 0, col; col = row.cells[iCell]; iCell++) {
+
+            if (selectedDN.trim() == col.innerText.trim()) {
+                item = iRow;
+                break exit;
+            }
+        }
+    }
+
+    if (item != -1) {
+        table.deleteRow(item);
+    }
+
+}
+
+function filter(container, tableView, filter) {
+    var storage = window.localStorage.getItem(`${container}:${window.storageKey}`);
+
+    if (storage != null) {
+        var entries = JSON.parse(storage);
+
+        var table = document.getElementById(tableView);
+
+        table.innerHTML = "";
+
+        for (var iEntry = 0; iEntry < entries.length; iEntry++) {
+
+            if (entries[iEntry].toLowerCase().indexOf(document.getElementById(filter).value.toLowerCase()) != -1) {
+                var row = table.insertRow();
+
+                row.setAttribute("onclick", `window.select('${entries[iEntry]}')`, 0);
+
+                var cell = row.insertCell();
+
+                cell.className = "result-table-item";
+                cell.style.textWrap = "nowrap";
+                cell.style.whiteSpace = "nowrap";
+
+                cell.innerHTML = entries[iEntry];
+
+            }
+
+        }
+
+    }
+
+}
+async function showAttributes(result) {
+
+    function filter(filterType, filterSelection, entry) {
+
+        if (filterSelection.length == 0) {
+            return true;
+        } else if (filterType == "name" && entry["name"].trim().toLowerCase().indexOf(filterSelection.trim().toLowerCase()) != -1) {
+            return true;
+        } else if (filterType == "oid" && entry["oid"].trim().toLowerCase().indexOf(filterSelection.trim().toLowerCase()) != -1) {
+            return true;
+        } else if (filterType == "value" && entry["value"].trim().toLowerCase().indexOf(filterSelection.trim().toLowerCase()) != -1) {
+            return true;
+        }
+
+        return false;
+
+    }
+
+    if (result == null) {
+        return;
+    }
+
+    var columns = ["Attribute", "Object-ID", "Syntax", "Type", "Data"];
+
+    var filterTypeOptions = document.getElementById("filter-type");
+    var filterType = filterTypeOptions.options[filterTypeOptions.selectedIndex].value;
+    var filterSelection = document.getElementById("filter-selection").value;
+    var rows = [];
+    var timestamps = [];
+
+    for (var entry in result.response) {
+        var row = [];
+
+        if (filter(filterType, filterSelection, result.response[entry])) {
+
+            for (var field in result.response[entry]) {
+
+                row.push(result.response[entry][field].replace(/</g, '&lt;').replace(/>/g, '&gt;'));
+
+            }
+
+            rows.push(row)
+
+        }
+
+    }
+
+    var dataview = new DataView(columns, rows);
+    let painter = new Painter();
+
+    let widths = [];
+
+    widths.push(250);
+    widths.push(250);
+    widths.push(250);
+    widths.push(80);
+    widths.push(800);
+
+    tableView = new TableView({
+        "container": "#artifacts-container",
+        "model": dataview,
+        "nbRows": dataview.Length,
+        "rowHeight": 30,
+        "headerHeight": 30,
+        "painter": painter,
+        "columnWidths": widths
+    });
+
+    document.getElementById('artifacts-container').style.display = "inline-block";
+
+    window.setTimeout(function () {
+        tableView.setup();
+        tableView.resize();
+    }, 10);
+
+    tableView.addProcessor(async function (button, row, x, y) {
+
+        function appendHex(value) {
+
+            const hexToByte = (hex) => {
+
+                var value = parseInt(`0x${hex}`, 16)
+                var output = value >= 32 && value <= 127 ? String.fromCharCode(value) : ".";
+
+                return output;
+
+            }
+
+            var hex = [];
+            for (var iChar = 0; iChar < value.length; iChar += 2) {
+
+                hex.push(value.substring(iChar, iChar + 2));
+
+            }
+
+            var hexValues = "";
+            var charValues = "";
+
+            var iHex = 0;
+            var iPos = 0
+
+            var html = `<table class="hex">`;
+            html += `</tr>`;
+
+            for (; iHex < hex.length; iHex++) {
+
+                iPos += 1;
+
+                hexValues += `<td>${hex[iHex]}&nbsp;|&nbsp;</td>`;
+                charValues += `<td>${hexToByte(hex[iHex])}</td>`;
+
+                if (iPos % 16 == 0) {
+                    html += `<td>${printHexZeroFill(iPos, 8)}&nbsp;|&nbsp;</td>`;
+                    html += hexValues;
+                    html += charValues;
+
+
+                    html += "</tr><tr>";
+
+                    hexValues = "";
+                    charValues = "";
+                }
+
+            }
+
+            if (iHex % 16 != 0) {
+                html += `<td>${printHexZeroFill(iPos, 8)}&nbsp;|&nbsp;</td>`;
+                html += hexValues;
+
+                for (var iCount = 0; iPos % 16 != 0; iPos++, iCount++) {
+
+                    html += `<td>${iCount < 16 ? "&nbsp" : ""}&nbsp;&nbsp;|&nbsp;</td>`;
+                }
+
+                html += charValues;
+
+                html += `</tr>`;
+            }
+
+            html += `</table>`;
+
+            html += `</div>`;
+
+            return html;
+
+        }
+
+        document.getElementById("artifact-view").style.display = "inline-block";
+
+        var template = new Template("attribute-view-entry");
+
+        template.append("artifact-entry-attribute",
+            {
+                "name": rows[row][0],
+                "type": rows[row][3],
+                "charValue": btoa(rows[row][4]),
+                "value": rows[row][4]
+            }
+
+        )
+
+        if (rows[row][3] == "String") {
+            var fragment = document.createRange().createContextualFragment(`<div class="hex">${rows[row][4].replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>`);
+
+            document.getElementById("artifact-entry-view").innerHTML = "";
+            document.getElementById("artifact-entry-view").appendChild(fragment);
+        } else {
+            document.getElementById("artifact-entry-view").innerHTML = appendHex(rows[row][4]);
+        }
+
+    });
+
+}
+
+async function select(dn) {
+
+    document.getElementById("selected-dn").innerHTML = `${dn}`;
+
+    const timeoutId = setTimeout(() => {
+        document.getElementById("wait-dialog").showModal();
+    }, 1000);
+
+    try {
+        var message = new Message(window.ldapURL, document.getElementById("ldap-password").value);
+
+        attributes = await message.retrieve(dn);
+
+        showAttributes(attributes);
+
+        var historyStorage = window.localStorage.getItem(`history:${window.storageKey}`);
+
+        var searchHistory = historyStorage != null ? JSON.parse(historyStorage) : [];
+
+        var table = document.getElementById("history-table");
+
+        if (!find(table, dn)) {
+            var row = table.insertRow();
+
+            row.setAttribute("onclick", `window.select('${dn}')`, 0);
+
+            var cell = row.insertCell();
+
+            cell.className = "result-table-item";
+            cell.style.textWrap = "nowrap";
+            cell.style.whiteSpace = "nowrap";
+
+            cell.innerHTML = dn;
+
+            searchHistory.push(dn);
+
+            window.localStorage.setItem(`history:${window.storageKey}`, JSON.stringify(searchHistory));
+
+        }
+
+        document.getElementById("dn-download-button").disabled = false;
+        document.getElementById("unbookmark-button").disabled = false;
+        document.getElementById("bookmark-button").disabled = false;
+        document.getElementById("wait-dialog").close();
+
+        clearTimeout(timeoutId);
+
+    } catch (exception) {
+
+        clearTimeout(timeoutId);
+        console.log(exception);
+        if (exception.trace) {
+            console.log(exception.trace);
+        }
+
+        document.getElementById("wait-dialog").close();
+        showError(`Server Error: ${exception.response}`);
+
+    }
+
+
+}
+
+/**
+ * Respond to the Document 'ready' event
+ */
+window.onload = async function () {
+
+    window.ldapURL = "";
+    window.storageKey = "";
+
+    var closeButtons = document.getElementsByClassName("close-button");
+
+    for (var closeButton = 0; closeButton < closeButtons.length; closeButton++) {
+
+        closeButtons[closeButton].addEventListener('click', (e) => {
+
+            document.getElementById(e.target.id.replace(/close\-|cancel\-/, "")).close();
+
+        });
+
+    }
+
+    document.getElementById("ok-connect-dialog").addEventListener('click', async (e) => {
+        const timeoutId = setTimeout(() => {
+            document.getElementById("wait-dialog").showModal();
+        }, 1000);
+
+        try {
+            var message = new Message(document.getElementById("ldap-url").value,
+                document.getElementById("ldap-password").value);
+
+            var result = await message.status();
+
+            document.getElementById("connect-dialog").close();
+            window.storageKey = result.response.host + ":" + result.response.port + "@" + result.response.username;
+            document.getElementById("viewer-status").innerHTML = `<b>Connected:&nbsp;</b>${window.storageKey}`;
+            window.ldapURL = document.getElementById("ldap-url").value;
+
+            document.getElementById("search-navigate-dn").textContent = "";
+            document.getElementById("search-results").innerHTML = "";
+            document.getElementById("artifacts-container").innerHTML = "";
+            document.getElementById("artifact-entry-attribute").innerHTML = "";
+            document.getElementById("artifact-entry-view").innerHTML = "";
+
+            setup("history", "history-table");
+            setup("bookmarks", "bookmarks-table");
+
+            clearTimeout(timeoutId);
+
+            document.getElementById("wait-dialog").close();
+
+            window.idleState = false;
+
+
+            detectActivity();
+
+        } catch (exception) {
+            clearTimeout(timeoutId);
+            console.log(exception);
+            if (exception.trace) {
+                console.log(exception.trace);
+            }
+
+            document.getElementById("wait-dialog").close();
+            showError(`Server Error: ${exception.response}`);
+
+        }
+
+    });
+
+    document.getElementById("search-button").addEventListener('click', (e) => {
+
+        search();
+
+    });
+
+    document.getElementById("filter-button").addEventListener('click', (e) => {
+
+        showAttributes(attributes);
+
+    });
+
+    document.getElementById("filter-history-button").addEventListener('click', (e) => {
+
+        filter("history", "history-table", "filter-history");
+
+    });
+
+    document.getElementById("filter-bookmarks-button").addEventListener('click', (e) => {
+
+        filter("bookmarks", "bookmarks-table", "filter-bookmarks");
+
+    });
+
+    document.getElementById("bookmark-button").addEventListener('click', async (e) => {
+        var bookmarkStorage = window.localStorage.getItem(`bookmarks:${window.storageKey}`);
+        var bookmarks = bookmarkStorage != null ? JSON.parse(bookmarkStorage) : [];
+
+        var found = false;
+
+        exit: for (var bookmark in bookmarks) {
+
+
+            if (bookmarks[bookmark] == document.getElementById("selected-dn").innerText) {
+
+                found = true;
+
+                break exit;
+
+            }
+
+        }
+
+        if (!found) {
+            bookmarks.push(document.getElementById("selected-dn").innerText);
+
+            window.localStorage.setItem(`bookmarks:${window.storageKey}`, JSON.stringify(bookmarks));
+
+            var table = document.getElementById("bookmarks-table");
+
+            var row = table.insertRow();
+
+            row.setAttribute("onclick", `window.select('${document.getElementById("selected-dn").innerText}')`, 0);
+
+            var cell = row.insertCell();
+
+            cell.className = "result-table-item";
+            cell.style.textWrap = "nowrap";
+            cell.style.whiteSpace = "nowrap";
+
+            cell.innerHTML = document.getElementById("selected-dn").innerText;
+
+        }
+
+    });
+
+    document.getElementById("unbookmark-button").addEventListener('click', async (e) => {
+
+        remove("bookmarks", "bookmarks-table");
+
+    });
+
+    document.getElementById("delete-bookmark-button").addEventListener('click', async (e) => {
+
+        remove("bookmarks", "bookmarks-table");
+
+    });
+
+    document.getElementById("dn-download-button").addEventListener('click', async (e) => {
+        var fileUtil = new FileUtil(document);
+        var message = new Message(window.ldapURL, document.getElementById("ldap-password").value);
+        var blob = await message.export(document.getElementById("selected-dn").innerText);
+
+        fileUtil.saveAs(blob, document.getElementById("selected-dn").innerText + ".asn1");
+
+    });
+
+    document.getElementById("clear-history-button").addEventListener('click', async (e) => {
+
+        window.localStorage.removeItem(`history:${window.storageKey}`);
+
+        document.getElementById("history-table").innerHTML = "";
+
+    });
+
+    document.getElementById("clear-bookmarks-button").addEventListener('click', async (e) => {
+
+        window.localStorage.removeItem(`bookmarks:${window.storageKey}`);
+
+        document.getElementById("bookmarks-table").innerHTML = "";
+
+    });
+
+    document.getElementById("delete-history-button").addEventListener('click', async (e) => {
+
+        remove("history", "history-table");
+
+    });
+
+    document.getElementById("erase-bookmarks-filter-button").addEventListener('click', async (e) => {
+
+        document.getElementById("filter-bookmarks").value = "";
+
+    });
+
+    document.getElementById("erase-history-filter-button").addEventListener('click', async (e) => {
+
+        document.getElementById("filter-history").value = "";
+
+    });
+
+
+    document.getElementById("erase-history-filter-button").addEventListener('click', async (e) => {
+
+        document.getElementById("filter-history").value = "";
+
+    });
+
+    document.getElementById("connect-dialog").addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && preventClosing) {
+            event.preventDefault();
+        }
+    });
+
+    document.getElementById("wait-dialog").addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && preventClosing) {
+            event.preventDefault();
+        }
+    });
+
+
+    document.getElementById("search-base").addEventListener('input', (event) => {
+
+        document.getElementById("search-button").disabled = document.getElementById("search-base").value.length < 1 ||
+            document.getElementById("search-filter").value.length < 1;
+
+    });
+
+    document.getElementById("search-filter").addEventListener('input', (event) => {
+
+        document.getElementById("search-button").disabled = document.getElementById("search-base").value.length < 1 ||
+            document.getElementById("search-filter").value.length < 1;
+
+    });
+
+    document.getElementById("connect-button").addEventListener('click', async (e) => {
+
+        document.getElementById("cancel-connect-dialog").style.visibility = "visible";
+        document.getElementById("connect-dialog").showModal();
+
+    });
+
+
+    document.getElementById(`retrieval-limit`).addEventListener('input', function (event) {
+        document.getElementById(`retrieval-limit-value`).textContent = event.target.value;
+    });
+
+    document.getElementById("connect-dialog").showModal();
+
+    activateTabs('tabs', 'search-panel', 'tab1');
+
+    document.addEventListener("mousedown", function () {
+
+        window.idleState = false;
+
+    });
+
+}
 var TIME_OUT_VALUE = 10000;
 
 function showError(message) {
