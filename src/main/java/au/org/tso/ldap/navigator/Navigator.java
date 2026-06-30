@@ -1,9 +1,9 @@
 package au.org.tso.ldap.navigator;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
 
+import org.apache.directory.api.ldap.model.message.SearchScope;
 import org.apache.directory.ldap.client.api.LdapConnection;
 import org.slf4j.LoggerFactory;
 
@@ -40,6 +40,7 @@ public class Navigator {
 	public class ResourceNotFoundException extends RuntimeException {
 		/**
 		 * HTTP resource not found
+		 * 
 		 * @param message the generic message for a page not found
 		 */
 		public ResourceNotFoundException(String message) {
@@ -101,40 +102,37 @@ public class Navigator {
 		this.directoryExporter = directoryExporter;
 	}
 
-	@GetMapping("/connect")
-	HashMap<String, String> connect(@RequestParam("url") String url,
-			@RequestHeader("password") String password) throws Exception {
-		HashMap<String, String> parts = connectionManager.parse(url);
-
-		connectionManager.reconnect(url);
-
-		return parts;
-
-	}
 
 	@GetMapping("/status")
 	String status(@RequestParam("url") String url, @RequestHeader("password") String password) throws Exception {
 
-		connectionManager.parse(url);
+		LdapConnection connection = connectionManager.connect(url, password);
 
-		return Integer.toString(connectionManager.status(url));
+		boolean valid = connection.isConnected();
+
+		connection.close();
+
+		return Boolean.toString(valid);
 
 	}
 
 	@GetMapping("/search")
 	SearchResponse search(@RequestParam("url") String url,
 			@RequestHeader("password") String password,
-			@RequestParam("argument") String argument,
+			@RequestParam("base") String base,
+			@RequestParam("filter") String filter,
+			@RequestParam("scope") String scope,
 			@RequestParam("limit") String limit) throws Exception {
 		var logger = LoggerFactory.getLogger(Navigator.class);
 
-		logger.info("Search Started: '" + argument + "'");
+		logger.info("[search] '" + base + "' - '" + filter + "' - '" + scope + "'");
 
 		LdapConnection connection = connectionManager.connect(url, password);
 
-		SearchResponse response = directoryExplorer.search(connection, argument, Integer.parseInt(limit));
+		SearchResponse response = directoryExplorer.search(connection, base, filter, SearchScope.valueOf(scope),
+				Integer.parseInt(limit));
 
-		logger.info("Search Successful: {} : {} ", limit, response.getResults().size());
+		connection.close();
 
 		return response;
 
@@ -147,13 +145,15 @@ public class Navigator {
 			throws Exception {
 		var logger = LoggerFactory.getLogger(Navigator.class);
 
-		logger.info("Retrieve Started");
+		logger.info("[retrieve] - '{}'", argument);
 
 		LdapConnection connection = connectionManager.connect(url, password);
 
 		Vector<Map<String, String>> attributes = directoryExplorer.retrieve(connection, argument);
 
-		logger.info("Retrieve Successful: " + attributes.size());
+		logger.info("[retrieve] - successful - '{}'", argument);
+
+		connection.close();
 
 		return attributes;
 
@@ -161,15 +161,16 @@ public class Navigator {
 
 	@GetMapping("/export")
 	byte[] export(@RequestParam("url") String url, @RequestHeader("password") String password,
-
 			@RequestParam("dn") String dn) throws Exception {
 		var logger = LoggerFactory.getLogger(Navigator.class);
 
-		logger.info("Export Started");
+		logger.info("[export] - '" + dn + "'");
 
 		LdapConnection connection = connectionManager.connect(url, password);
 
 		var exportValue = directoryExporter.export(connection, dn);
+
+		connection.close();
 
 		return exportValue;
 
