@@ -8,7 +8,7 @@
 
     <link rel="stylesheet" type="text/css" href="styles/main.css">
     <link rel="stylesheet" type="text/css" href="styles/tableview.css">
-    <link rel="stylesheet" type="text/css" href="styles/tab.css">
+    <link rel="stylesheet" type="text/css" href="styles/tabview.css">
 
     <title>LDAP Navigator</title>
 
@@ -58,26 +58,19 @@
         </form>
     </dialog>
 
-    <dialog id="connect-dialog" class="dialog" style="min-width:600px; height:200px;">
-        <div style="position:absolute; top:20px; left:10px; width:80px;">
-            <img src="images/connect.svg" width="64" height="64" style="float: left; margin-right:10px;" />
+    <dialog id="connect-dialog" class="dialog" style="min-width:500px; height:200px;">
+        <p style="font-size: 18px; font-weight: bold;">Enter the LDAP URL</p>
+
+        <div style="position:absolute; top:70px; left:10px; right:10px">
+            <input class="modal-entry" id="ldap-url" style="position:absolute; left:10px; right:10px" type="text"
+                name="ldap-url" placeholder="ldap://userid@host:389">
+            </input>
         </div>
-       
-        <div style="position:absolute; top:10px; left:100px; right:10px">
-             <div style="position:absolute; top:0; ">
-                <p style="font-size: 18px; font-weight: bold;">Enter the LDAP Details</p>
-            </div>
-            <div style="position:absolute; top:50px; left:0px; right:0px;">
-                <input class="modal-entry" id="ldap-url" style="position:absolute; left:0px; right:10px" type="text"
-                    name="ldap-url" placeholder="ldap://userid@host:389">
-                </input>
-            </div>
-            <div style="position:absolute; top:80px; left:0px; right:0px;">
-                <input class="modal-entry" id="ldap-password" style="position:absolute; left:0px; right:10px"
-                    type="password" name="ldap-url" placeholder="password">
-                </input>
-            </div>
-        </div>    
+        <div style="position:absolute; top:105px; left:10px; right:200px">
+            <input class="modal-entry" id="ldap-password" style="position:absolute; left:10px; right:10px"
+                type="password" name="ldap-password" placeholder="password">
+            </input>
+        </div>
 
         <div style="position:absolute; bottom:10px; left:10px; right:10px;">
             <div id="connect-message"
@@ -102,7 +95,7 @@
         </button>
     </div>
 
-    <div id="tabs" style="position:absolute; top:44px; left:10px; width:430px; bottom:10px; overflow:hidden;">
+    <div id="tabs" style="position:absolute; top:44px; left:10px; width:530px; bottom:10px; overflow:hidden;">
         <div class="tab">
             <button class="tablinks" id="tab1" onclick="showTab(event, 'tabs', 'search-panel', 'tab1')"
                 value="Search">Search</button>
@@ -113,35 +106,85 @@
         </div>
         <div id="search-panel" class="tabcontent"
             style="position:absolute; top:45px; left:0px; right:0px; bottom:0px; overflow:hidden;">
-            <input id="search-argument" class="search" style="position:absolute; height:22px; left:10px; right:90px"
-                name="search-argument">
+
+            <input id="search-base" class="search" style="position:absolute; height:24px; left:10px; width:182px;"
+                name="search-base" placeholder="base">
             </input>
+            <input id="search-filter" class="search" style="position:absolute; height:24px; left:195px; width:182px;"
+                name="search-filter" placeholder="filter" value="(objectclass=*)" list="search-filter-options">
+            <datalist id="search-filter-options">
+                <option value="(objectclass=*)">
+                <option value="(objectclass=inetOrgPerson)">
+                <option value="(&(objectclass=*)(cn=*))">
+                <option value="(&(objectclass=*)(mail=*))">
+                <option value="(&(objectclass=*)(sn=*))">                
+                <option value="(&(objectclass=*)(fullName=*))"></option>
+            </datalist>
+            </input>
+
+            <select id="search-scope" name="search-scopes"
+                style="position:absolute; height:24px; left:380px; width:96px;">
+                <option value="OBJECT">Object</option>
+                <option value="ONELEVEL">One Level</option>
+                <option value="SUBTREE">Subtree</option>
+            </select>
+
             <button id="search-button" class="message-dialog-small-button"
                 style="float: right;height:24px; margin-left:5px" disabled>
                 <img src="images/search.svg" width="18" , height="18"></img>
             </button>
-            <button id="erase-button" class="message-dialog-small-button" style="float: right; height:24px;">
-                <img src="images/erase.svg" width="18" , height="18"></img>
-            </button>
             <div id="search-results"
-                style="position:absolute; top:36px; left:10px; right:10px; bottom:45px; border: 1px solid rgba(0,0,0, 0.2); padding:4px; overflow:auto;">
+                style="position:absolute; top:36px; left:10px; right:10px; bottom:75px; border: 1px solid rgba(0,0,0, 0.2); padding:4px; overflow:auto;">
             </div>
             <div id="search-navigation"
-                style="position:absolute; height: 30px; left:10px; right:10px; bottom:10px; padding:4px; overflow:none;">
+                style="position:absolute; height: 42px; left:10px; right:10px; bottom:10px; padding:4px; overflow:none;">
                 <label id="search-navigate-dn" class="status-message overflow-text"
-                    style="font-size:12px; font-weight:normal; position:absolute; top:7px; left:10px; width:300px"></label>
-                <button id="search-navigate-refresh" class="message-dialog-small-button"
-                    style="position:absolute; right:36px;" disabled>
-                    <img src="images/refresh.svg" width="18" , height="18"></img>
-                </button>
-                <button id="search-navigate-forward" class="message-dialog-small-button"
-                    style="position:absolute; right:0px;" disabled>
-                    <img src="images/forward.svg" width="18" , height="18"></img>
-                </button>
+                    style="font-size:12px; font-weight:normal; position:absolute; top:-13px; left:4px; height:18px; width:300px"></label>
+                <div class="retrieval-limit-container">
+                    <label for="retrieval-limit" style="position:absolute; top:8px; font-weight:bold;"
+                        class="field">Limit:</label>
+                    <input type="range" id="retrieval-limit" name="limit" min="100" max="1000" value="10" step="10"
+                        list="retrieval-tickmarks" style="position:absolute; top:4px; width:430px; left:40px;"></input>
 
+                    <div class="current-value" style="position:absolute; top:8px; left:474px;">
+                        <span id="retrieval-limit-value">100</span>
+                    </div>
+
+                    <datalist id="retrieval-tickmarks">
+                        <option value="100"></option>
+                        <option value="200"></option>
+                        <option value="300"></option>
+                        <option value="400"></option>
+                        <option value="500"></option>
+                        <option value="600"></option>
+                        <option value="700"></option>
+                        <option value="800"></option>
+                        <option value="900"></option>
+                        <option value="1000"></option>
+                    </datalist>
+
+                    <div class="retrieval-slider-options"
+                        style="display:block; position:absolute; top:26px; width:620px; left:14px;">
+                        <div class="retrieval-slider-options" style="left:0px; width:484px;">
+                            <span class="slider-tick-label">100</span>
+                            <span class="slider-tick-label">200</span>
+                            <span class="slider-tick-label">300</span>
+                            <span class="slider-tick-label">400</span>
+                            <span class="slider-tick-label">500</span>
+                            <span class="slider-tick-label">600</span>
+                            <span class="slider-tick-label">700</span>
+                            <span class="slider-tick-label">800</span>
+                            <span class="slider-tick-label">900</span>
+                            <span class="slider-tick-label">1000</span>
+                        </div>
+                    </div>
+
+                </div>
             </div>
 
         </div>
+
+
         <div id="bookmarks-panel" class="tabcontent"
             style="position:absolute; top:45px; left:0px; right:0px; bottom:0px; overflow:hidden;">
             <input id="filter-bookmarks" class="search" style="position:absolute; height:22px; left:10px; right:90px"
@@ -211,7 +254,7 @@
         </div>
     </div>
     <div id="container"
-        style="position:absolute; top:44px; left:460px; right:10px; bottom:40px; border: 1px solid rgba(0,0,0, 0.2); overflow:hidden;">
+        style="position:absolute; top:44px; left:550px; right:10px; bottom:40px; border: 1px solid rgba(0,0,0, 0.2); overflow:hidden;">
 
         <div id="artifacts" style="position:absolute; top:10px; left:10px; right:10px; bottom:10px; font-size:14px;">
             <div id="artifacts-filter"
@@ -223,11 +266,7 @@
                     <option value="value">Field Value</option>
                 </select>
                 <input type="text" id="filter-selection" name="filter"
-                    style="position:absolute; top:-2px; left:120px; right:80px"></input>
-                <button id="erase-filter-button" class="message-dialog-small-button"
-                    style="position:absolute; top:-4px; right:40px; height:24px;">
-                    <img src="images/erase.svg" width="16" , height="16"></img>
-                </button>
+                    style="position:absolute; top:-2px; left:120px; right:40px"></input>
                 <button id="filter-button" class="message-dialog-small-button"
                     style="position:absolute; top:-4px; right:0px; height:24px;">
                     <img src="images/filter.svg" width="16" , height="16"></img>

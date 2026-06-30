@@ -1,12 +1,16 @@
-function Message() {
+function Message(url, password) {
+    
+    this.url = url.trim();
+    this.password = password;
 
-    this._connect = function (url) {
+    this._status = function () {
 
         return new Promise((accept, reject) => {
-            let parmURL = `/navigator/connect?url=${encodeURIComponent(url)}`;
+            let parmURL = `/navigator/status?url=${encodeURIComponent(this.url)}`;
             var xhttp = new XMLHttpRequest();
 
             xhttp.open("GET", parmURL, true);
+            xhttp.setRequestHeader("password", this.password);
 
             xhttp.onreadystatechange = async function () {
                 xhttp.onload = function () {
@@ -22,7 +26,7 @@ function Message() {
                     } else {
                         reject({
                             status: this.status,
-                            response: this.response
+                            response: this.responseText
                         });
 
                     }
@@ -30,9 +34,6 @@ function Message() {
                 };
 
                 xhttp.onerror = function () {
-
-                    alert("Unable to Login");
-
                 };
 
             }
@@ -41,15 +42,20 @@ function Message() {
 
         });
 
-    }
+    }.bind(this)
 
-    this._status = function (url) {
+    this._search = function (base, filter, scope, limit) {
 
         return new Promise((accept, reject) => {
-            let parmURL = `/navigator/status?url=${encodeURIComponent(url)}`;
+            let parmURL = `/navigator/search?url=${encodeURIComponent(this.url)}` +
+                          `&base=${encodeURIComponent(base)}` +
+                          `&filter=${encodeURIComponent(filter)}` +
+                          `&scope=${encodeURIComponent(scope)}` +
+                          `&limit=${limit}`;
             var xhttp = new XMLHttpRequest();
 
             xhttp.open("GET", parmURL, true);
+            xhttp.setRequestHeader("password", this.password);
 
             xhttp.onreadystatechange = async function () {
                 xhttp.onload = function () {
@@ -65,50 +71,7 @@ function Message() {
                     } else {
                         reject({
                             status: this.status,
-                            response: this.response
-                        });
-
-                    }
-
-                };
-
-                xhttp.onerror = function () {
-
-                    alert("Unable to retrieve status");
-
-                };
-
-            }
-
-            xhttp.send();
-
-        });
-
-    }
-
-    this._search = function (url, argument) {
-
-        return new Promise((accept, reject) => {
-            let parmURL = `/navigator/search?url=${encodeURIComponent(url)}&argument=${encodeURIComponent(argument)}`;
-            var xhttp = new XMLHttpRequest();
-
-            xhttp.open("GET", parmURL, true);
-
-            xhttp.onreadystatechange = async function () {
-                xhttp.onload = function () {
-
-                    if (this.readyState === 4 && this.status === 200) {
-                        var response = JSON.parse(this.responseText);
-
-                        accept({
-                            status: this.status,
-                            response: response
-                        });
-
-                    } else {
-                        reject({
-                            status: this.status,
-                            response: this.response
+                            response: this.responseText
                         });
 
                     }
@@ -124,58 +87,16 @@ function Message() {
 
         });
 
-    }
+    }.bind(this)
 
-    this._next = function (url, argument, cursorPosition) {
+    this._retrieve = function (dn) {
 
         return new Promise((accept, reject) => {
-            let parmURL = `/navigator/next?url=${encodeURIComponent(url)}&argument=${encodeURIComponent(argument)}` +
-                `&cursorPosition=${encodeURIComponent(cursorPosition)}`;
+            let parmURL = `/navigator/retrieve?url=${encodeURIComponent(this.url)}&argument=${encodeURIComponent(dn)}`;
             var xhttp = new XMLHttpRequest();
 
             xhttp.open("GET", parmURL, true);
-
-            xhttp.onreadystatechange = async function () {
-                xhttp.onload = function () {
-
-                    if (this.readyState === 4 && this.status === 200) {
-                        var response = JSON.parse(this.responseText);
-                        var result = JSON.parse(xhttp.response);
-
-                        accept({
-                            status: this.status,
-                            response: response
-                        });
-
-                    } else {
-
-                        reject({
-                            status: this.status,
-                            response: this.response
-                        });
-
-                    }
-
-                };
-
-                xhttp.onerror = function () {
-                };
-
-            }
-
-            xhttp.send();
-
-        });
-
-    }
-
-    this._retrieve = function (url, dn) {
-
-        return new Promise((accept, reject) => {
-            let parmURL = `/navigator/retrieve?url=${encodeURIComponent(url)}&argument=${encodeURIComponent(dn)}`;
-            var xhttp = new XMLHttpRequest();
-
-            xhttp.open("GET", parmURL, true);
+            xhttp.setRequestHeader("password", this.password);
 
             xhttp.onreadystatechange = async function () {
                 xhttp.onload = function () {
@@ -191,7 +112,7 @@ function Message() {
 
                         reject({
                             status: this.status,
-                            response: this.response
+                            response: this.responseText
                         });
 
                     }
@@ -207,15 +128,17 @@ function Message() {
 
         });
 
-    }
+    }.bind(this)
 
-    this._export = function (url, dn) {
+    this._export = function(dn) {
 
         return new Promise((accept, reject) => {
-            let parmURL = `/navigator/export?url=${encodeURIComponent(url)}&dn=${encodeURIComponent(dn)}`;
+            let parmURL = `/navigator/export?url=${encodeURIComponent(this.url)}&dn=${encodeURIComponent(dn)}`;
             var xhttp = new XMLHttpRequest();
 
             xhttp.open("GET", parmURL, true);
+            xhttp.setRequestHeader("password", this.password);
+
             xhttp.responseType = "blob";
 
             xhttp.onreadystatechange = async function () {
@@ -227,7 +150,7 @@ function Message() {
 
                         reject({
                             status: this.status,
-                            response: this.response
+                            response: this.responseText
                         });
 
                     }
@@ -243,43 +166,36 @@ function Message() {
 
         });
 
-    }
+    }.bind(this)
 
 }
 
-Message.prototype.connect = function (url) {
+Message.prototype.status = function () {
 
-    return this._connect(url.trim());
-
-}
-
-
-Message.prototype.status = function (url) {
-
-    return this._status(url.trim());
+    return this._status();
 
 }
 
-Message.prototype.search = function (url, argument) {
+Message.prototype.search = function (objectClass, base, filter, scope, limit) {
 
-    return this._search(url.trim(), argument);
-
-}
-
-Message.prototype.next = function (url, argument, cursorPosition) {
-
-    return this._next(url.trim(), argument, cursorPosition);
+    return this._search(objectClass, base, filter, scope, limit);
 
 }
 
-Message.prototype.retrieve = function (url, dn) {
+Message.prototype.next = function (argument, cursorPosition) {
 
-    return this._retrieve(url.trim(), dn);
+    return this._next(argument, cursorPosition);
 
 }
 
-Message.prototype.export = function (url, dn) {
+Message.prototype.retrieve = function (dn) {
 
-    return this._export(url.trim(), dn);
+    return this._retrieve(dn);
+
+}
+
+Message.prototype.export = function (dn) {
+
+    return this._export(dn);
 
 }
