@@ -3,50 +3,6 @@ function Message(url, password) {
     this.url = url.trim();
     this.password = password;
 
-    this._connect = function () {
-
-        return new Promise((accept, reject) => {
-            let parmURL = `/navigator/connect?url=${encodeURIComponent(this.url)}`;
-            var xhttp = new XMLHttpRequest();
-
-            xhttp.open("GET", parmURL, true);
-            xhttp.setRequestHeader("password", this.password);
-
-            xhttp.onreadystatechange = async function () {
-                xhttp.onload = function () {
-
-                    if (this.readyState === 4 && this.status === 200) {
-                        var response = JSON.parse(this.responseText);
-
-                        accept({
-                            status: this.status,
-                            response: response
-                        });
-
-                    } else {
-                        reject({
-                            status: this.status,
-                            response: this.responseText
-                        });
-
-                    }
-
-                };
-
-                xhttp.onerror = function () {
-
-                    alert("Unable to Login");
-
-                };
-
-            }
-
-            xhttp.send();
-
-        });
-
-    }.bind(this);
-
     this._status = function () {
 
         return new Promise((accept, reject) => {
@@ -78,9 +34,6 @@ function Message(url, password) {
                 };
 
                 xhttp.onerror = function () {
-
-                    alert("nable to retrieve status");
-
                 };
 
             }
@@ -91,10 +44,14 @@ function Message(url, password) {
 
     }.bind(this)
 
-    this._search = function (argument, limit) {
+    this._search = function (base, filter, scope, limit) {
 
         return new Promise((accept, reject) => {
-            let parmURL = `/navigator/search?url=${encodeURIComponent(this.url)}&argument=${encodeURIComponent(argument)}&limit=${limit}`;
+            let parmURL = `/navigator/search?url=${encodeURIComponent(this.url)}` +
+                          `&base=${encodeURIComponent(base)}` +
+                          `&filter=${encodeURIComponent(filter)}` +
+                          `&scope=${encodeURIComponent(scope)}` +
+                          `&limit=${limit}`;
             var xhttp = new XMLHttpRequest();
 
             xhttp.open("GET", parmURL, true);
@@ -213,22 +170,15 @@ function Message(url, password) {
 
 }
 
-Message.prototype.connect = function () {
-
-    return this._connect();
-
-}
-
-
 Message.prototype.status = function () {
 
     return this._status();
 
 }
 
-Message.prototype.search = function (argument, limit) {
+Message.prototype.search = function (objectClass, base, filter, scope, limit) {
 
-    return this._search(argument, limit);
+    return this._search(objectClass, base, filter, scope, limit);
 
 }
 
