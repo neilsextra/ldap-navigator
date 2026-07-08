@@ -28,6 +28,6 @@ Example
 `password`
 
 Queries
-`ou=mathematicians,dc=example,dc=com`
-`ou=scientists,dc=example,dc=com`
-`dc=example,dc=com`
+* `ou=mathematicians,dc=example,dc=com`
+* `ou=scientists,dc=example,dc=com`
+* `dc=example,dc=com`
