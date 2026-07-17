@@ -63,12 +63,12 @@
 
         <div style="position:absolute; top:70px; left:10px; right:10px">
             <input class="modal-entry" id="ldap-url" style="position:absolute; left:10px; right:10px" type="text"
-                name="ldap-url" placeholder="ldap://userid@host:389">
+                name="ldap-url" placeholder="ldap://userid@host:389" required>
             </input>
         </div>
         <div style="position:absolute; top:105px; left:10px; right:200px">
             <input class="modal-entry" id="ldap-password" style="position:absolute; left:10px; right:10px"
-                type="password" name="ldap-password" placeholder="password">
+                type="password" name="ldap-password" placeholder="password" required>
             </input>
         </div>
 
@@ -77,7 +77,7 @@
                 style="color:rgba(255,0,0,0.6); width:300px; float:left; font-size: 12px; margin-top:8px;"></div>
 
             <button id="ok-connect-dialog" class="message-dialog-small-button"
-                style="float:right; margin-top:10px; margin-left:10px;">Connect</button>
+                style="float:right; margin-top:10px; margin-left:10px;" disabled>Connect</button>
 
             <button id="cancel-connect-dialog" class="close-button message-dialog-small-cancel-button"
                 style="float:right; margin-top:10px; visibility: hidden;">Cancel</button>
