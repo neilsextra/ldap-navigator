@@ -798,7 +798,6 @@ window.onload = async function () {
 
     });
 
-
     document.getElementById(`retrieval-limit`).addEventListener('input', function (event) {
         document.getElementById(`retrieval-limit-value`).textContent = event.target.value;
     });
