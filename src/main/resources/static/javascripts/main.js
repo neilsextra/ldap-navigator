@@ -803,6 +803,23 @@ window.onload = async function () {
         document.getElementById(`retrieval-limit-value`).textContent = event.target.value;
     });
 
+
+    document.getElementById("connect-dialog").addEventListener('input', async (e) => {
+     
+        var requiredFields = Array.from(document.querySelectorAll('input[required]'));
+        var disabled = false;
+
+        loop : for (var requiredField of requiredFields) {
+            if (requiredField.value.length == 0) {
+                 disabled = true;
+                 break loop;
+            }
+        }
+
+        document.getElementById("ok-connect-dialog").disabled = disabled;
+  
+    });
+
     document.getElementById("connect-dialog").showModal();
 
     activateTabs('tabs', 'search-panel', 'tab1');
