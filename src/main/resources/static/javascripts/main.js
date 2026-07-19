@@ -163,7 +163,7 @@ function copyToClipboard(type, value) {
 
 function copyToSearch(type, value) {
 
-    document.getElementById("search-argument").value = (type == "Binary") ? hex2Char(value).split('#')[0] : value.split('#')[0];
+    document.getElementById("search-base").value = (type == "Binary") ? hex2Char(value).split('#')[0] : value.split('#')[0];
 
 }
 
@@ -172,6 +172,23 @@ function copyToLaunch(type, value) {
     document.getElementById("search-base").value = (type == "Binary") ? hex2Char(value).split('#')[0] : value.split('#')[0];
 
     search();
+
+}
+
+function setDatalist(datalist, options) {
+
+    datalist.textContent = '';
+
+    options.sort();
+
+    options.forEach(item => {
+        if (typeof item === "string" && item.trim() !== "") {
+            const option = document.createElement("option");
+            option.value = item;
+            datalist.appendChild(option);
+            console.log(`Appending: ${item}`);
+        }
+    });
 
 }
 
@@ -195,6 +212,7 @@ function setup(container, table) {
             cell.style.whiteSpace = "nowrap";
 
             cell.innerHTML = searchHistory[iHistory];
+
         }
 
     }
@@ -333,6 +351,7 @@ function filter(container, tableView, filter) {
     }
 
 }
+
 async function showAttributes(result) {
 
     function filter(filterType, filterSelection, entry) {
@@ -356,15 +375,29 @@ async function showAttributes(result) {
     }
 
     var columns = ["Attribute", "Object-ID", "Syntax", "Type", "Data"];
-
     var filterTypeOptions = document.getElementById("filter-type");
     var filterType = filterTypeOptions.options[filterTypeOptions.selectedIndex].value;
     var filterSelection = document.getElementById("filter-selection").value;
     var rows = [];
     var timestamps = [];
+    var oids = [];
+    var names = [];
+    var values = [];
 
     for (var entry in result.response) {
         var row = [];
+
+        if (!oids.includes(result.response[entry]["oid"])) {
+            oids.push(result.response[entry]["oid"]);
+        }
+
+        if (!names.includes(result.response[entry]["name"])) {
+            names.push(result.response[entry]["name"]);
+        }
+
+        if (!names.includes(result.response[entry]["value"])) {
+            values.push(result.response[entry]["value"]);
+        }
 
         if (filter(filterType, filterSelection, result.response[entry])) {
 
@@ -379,6 +412,14 @@ async function showAttributes(result) {
         }
 
     }
+
+    window["datalists"] = {
+        "name": names,
+        "oid": oids,
+        "value": values
+    }
+
+    setDatalist(document.getElementById("filter-selection-datalist"), window["datalists"][filterType]);
 
     var dataview = new DataView(columns, rows);
     let painter = new Painter();
@@ -403,10 +444,12 @@ async function showAttributes(result) {
 
     document.getElementById('artifacts-container').style.display = "inline-block";
 
-    window.setTimeout(function () {
-        tableView.setup();
-        tableView.resize();
-    }, 10);
+    if (filter)
+
+        window.setTimeout(function () {
+            tableView.setup();
+            tableView.resize();
+        }, 10);
 
     tableView.addProcessor(async function (button, row, x, y) {
 
@@ -804,19 +847,26 @@ window.onload = async function () {
 
 
     document.getElementById("connect-dialog").addEventListener('input', async (e) => {
-     
+
         var requiredFields = Array.from(document.querySelectorAll('input[required]'));
         var disabled = false;
 
-        loop : for (var requiredField of requiredFields) {
+        loop: for (var requiredField of requiredFields) {
             if (requiredField.value.length == 0) {
-                 disabled = true;
-                 break loop;
+                disabled = true;
+                break loop;
             }
         }
 
         document.getElementById("ok-connect-dialog").disabled = disabled;
-  
+
+    });
+
+    document.getElementById("filter-type").addEventListener('change', (event) => {
+        const selectedValue = event.target.value;
+
+        setDatalist(document.getElementById("filter-selection-datalist"), window["datalists"][selectedValue]);
+
     });
 
     document.getElementById("connect-dialog").showModal();
