@@ -869,6 +869,13 @@ window.onload = async function () {
 
     });
 
+    
+    window["datalists"] = {
+        "name": [],
+        "oid": [],
+        "value": []
+    }
+
     document.getElementById("connect-dialog").showModal();
 
     activateTabs('tabs', 'search-panel', 'tab1');
