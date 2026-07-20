@@ -186,8 +186,7 @@ function setDatalist(datalist, options) {
             const option = document.createElement("option");
             option.value = item;
             datalist.appendChild(option);
-            console.log(`Appending: ${item}`);
-        }
+         }
     });
 
 }
@@ -868,7 +867,6 @@ window.onload = async function () {
         setDatalist(document.getElementById("filter-selection-datalist"), window["datalists"][selectedValue]);
 
     });
-
     
     window["datalists"] = {
         "name": [],
