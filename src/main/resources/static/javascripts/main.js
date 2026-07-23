@@ -186,7 +186,7 @@ function setDatalist(datalist, options) {
             const option = document.createElement("option");
             option.value = item;
             datalist.appendChild(option);
-         }
+        }
     });
 
 }
@@ -566,29 +566,26 @@ async function select(dn) {
 
         var historyStorage = window.localStorage.getItem(`history:${window.storageKey}`);
 
-        var searchHistory = historyStorage != null ? JSON.parse(historyStorage) : [];
-
-        var table = document.getElementById("history-table");
-
-        if (!find(table, dn)) {
-            var row = table.insertRow();
-
-            row.setAttribute("onclick", `window.select('${dn}')`, 0);
-
-            var cell = row.insertCell();
-
-            cell.className = "result-table-item";
-            cell.style.textWrap = "nowrap";
-            cell.style.whiteSpace = "nowrap";
-
-            cell.innerHTML = dn;
-
-            searchHistory.push(dn);
-
-            window.localStorage.setItem(`history:${window.storageKey}`, JSON.stringify(searchHistory));
-
+        if (historyStorage != null) {
+            remove("history", "history-table");
         }
 
+        var searchHistory = historyStorage != null ? JSON.parse(historyStorage) : [];
+        var table = document.getElementById("history-table");
+        var row = table.insertRow();
+        
+        row.setAttribute("onclick", `window.select('${dn}')`, 0);
+
+        var cell = row.insertCell();
+
+        cell.className = "result-table-item";
+        cell.style.textWrap = "nowrap";
+        cell.style.whiteSpace = "nowrap";
+        cell.innerHTML = dn;
+        searchHistory.push(dn);
+
+        window.localStorage.setItem(`history:${window.storageKey}`, JSON.stringify(searchHistory));
+        
         document.getElementById("dn-download-button").disabled = false;
         document.getElementById("unbookmark-button").disabled = false;
         document.getElementById("bookmark-button").disabled = false;
@@ -618,7 +615,7 @@ async function select(dn) {
 window.onload = async function () {
 
     window.ldapURL = "";
-    window.storageKey = "";
+    window.storageKey = "ldap-navigator";
 
     var closeButtons = document.getElementsByClassName("close-button");
 
@@ -710,7 +707,6 @@ window.onload = async function () {
         var found = false;
 
         exit: for (var bookmark in bookmarks) {
-
 
             if (bookmarks[bookmark] == document.getElementById("selected-dn").innerText) {
 
@@ -867,7 +863,7 @@ window.onload = async function () {
         setDatalist(document.getElementById("filter-selection-datalist"), window["datalists"][selectedValue]);
 
     });
-    
+
     window["datalists"] = {
         "name": [],
         "oid": [],
