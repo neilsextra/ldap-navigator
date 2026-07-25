@@ -615,7 +615,7 @@ async function select(dn) {
 window.onload = async function () {
 
     window.ldapURL = "";
-    window.storageKey = "ldap-navigator";
+    window.storageKey = "";
 
     var closeButtons = document.getElementsByClassName("close-button");
 
@@ -658,8 +658,8 @@ window.onload = async function () {
             document.getElementById("wait-dialog").close();
 
             window.idleState = false;
-
-
+            window.storageKey = document.getElementById("ldap-url").value;
+            
             detectActivity();
 
         } catch (exception) {
