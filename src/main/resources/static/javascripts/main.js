@@ -632,7 +632,7 @@ window.onload = async function () {
     document.getElementById("ok-connect-dialog").addEventListener('click', async (e) => {
         const timeoutId = setTimeout(() => {
             document.getElementById("wait-dialog").showModal();
-        }, 1000);
+        }, 200);
 
         try {
             var message = new Message(document.getElementById("ldap-url").value,
