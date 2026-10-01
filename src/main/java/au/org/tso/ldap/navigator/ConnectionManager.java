@@ -64,6 +64,7 @@ public class ConnectionManager {
         public X509Certificate[] getAcceptedIssuers() {
             return new X509Certificate[0]; // Return empty array
         }
+        
     }
 
     /**
