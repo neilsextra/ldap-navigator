@@ -19,7 +19,14 @@ GTK Sample LDAP Viewer
 
 ## Example Connection String
 
+No SSL:
+
 `ldap://<user-dn>:<password>@<hostname>:389`
+
+For SSL Support:
+
+`ldaps://<user-dn>:<password>@<hostname>:636`
+
 
 Example
 `ldap://cn=read-only-admin,dc=example,dc=com@ldap.forumsys.com:389`
