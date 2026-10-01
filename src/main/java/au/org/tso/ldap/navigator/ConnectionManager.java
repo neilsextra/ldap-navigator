@@ -1,6 +1,9 @@
-package au.org.tso.ldap.navigator;
+package au.gov.sa.euc.ldap.navigator;
 
+import java.security.cert.X509Certificate;
 import java.util.HashMap;
+
+import javax.net.ssl.X509TrustManager;
 
 import org.apache.directory.ldap.client.api.DefaultLdapConnectionFactory;
 import org.apache.directory.ldap.client.api.LdapConnection;
@@ -18,6 +21,50 @@ import org.springframework.stereotype.Component;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class ConnectionManager {
+
+    /**
+     * Insecure Trust Manager
+     */
+    final public class InsecureTrustManager implements X509TrustManager {
+        /**
+         * Default constructor
+         */
+        InsecureTrustManager() {
+        }
+
+        /**
+         * Check the SSL client certificate
+         * 
+         * @param certs    the certificate array
+         * @param authType the authentication type
+         */
+        @Override
+        public void checkClientTrusted(X509Certificate[] certs, String authType) {
+            // Accept all client certificates
+        }
+
+        /**
+         * Check the server SSL client certificate
+         * 
+         * @param certs    the certificate array
+         * @param authType the authentication type
+         */
+        @Override
+        public void checkServerTrusted(X509Certificate[] certs, String authType) {
+            // Accept all server certificates
+        }
+
+        /**
+         * Return the accepted issues an empty array means all server certficates are
+         * acceptable
+         * 
+         * @return an array of acceptable certificates
+         */
+        @Override
+        public X509Certificate[] getAcceptedIssuers() {
+            return new X509Certificate[0]; // Return empty array
+        }
+    }
 
     /**
      * Connection Manager constructor
@@ -72,6 +119,11 @@ public class ConnectionManager {
         config.setLdapPort(Integer.parseInt(properties.get("port")));
         config.setName(properties.get("username"));
         config.setCredentials(password);
+
+        if (properties.get("protocol").equals("ldaps")) {
+             config.setTrustManagers(new InsecureTrustManager());
+             config.setUseSsl(true);     
+        }
 
         DefaultLdapConnectionFactory factory = new DefaultLdapConnectionFactory(config);
 
