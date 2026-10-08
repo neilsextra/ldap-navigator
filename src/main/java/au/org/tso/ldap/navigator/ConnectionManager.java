@@ -91,7 +91,8 @@ public class ConnectionManager {
             };
             
             config.setTrustManagers(trustAllCerts)
-             config.setUseSsl(true);     
+            config.setUseSsl(true);    
+            
         }
 
         DefaultLdapConnectionFactory factory = new DefaultLdapConnectionFactory(config);
