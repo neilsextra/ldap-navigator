@@ -20,6 +20,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import jakarta.annotation.PostConstruct;
+
 /**
  * Navigator
  * 
@@ -30,6 +34,13 @@ import org.springframework.web.bind.annotation.RestController;
 @ComponentScan("au.org.tso.ldap.navigator")
 @RequestMapping("navigator")
 public class Navigator {
+	
+ 	@PostConstruct
+ 	public void setLogLevel() {
+        Logger ldapLogger = (Logger) LoggerFactory.getLogger("org.apache.directory");
+        ldapLogger.setLevel(Level.OFF);
+		
+    }
 
 	/**
 	 * Thrown if the HTTP page could not be found
