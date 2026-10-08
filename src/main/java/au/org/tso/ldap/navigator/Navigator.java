@@ -34,7 +34,9 @@ import jakarta.annotation.PostConstruct;
 @ComponentScan("au.org.tso.ldap.navigator")
 @RequestMapping("navigator")
 public class Navigator {
-	
+	/**
+	 * Turn off logging for the LDAP directory library
+	 */
  	@PostConstruct
  	public void setLogLevel() {
         Logger ldapLogger = (Logger) LoggerFactory.getLogger("org.apache.directory");
