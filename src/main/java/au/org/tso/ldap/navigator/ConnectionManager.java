@@ -90,8 +90,11 @@ public class ConnectionManager {
                     }
             };
             
-            config.setTrustManagers(trustAllCerts)
-            config.setUseSsl(true);    
+            config.setTrustManagers(trustAllCerts);
+            config.setSslEndpointIdentificationAlgorithm(null);
+            
+            config.setUseSsl(true);
+            config.setUseTls(true);
             
         }
 
