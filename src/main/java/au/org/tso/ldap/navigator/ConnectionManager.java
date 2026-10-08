@@ -3,6 +3,7 @@ package au.org.tso.ldap.navigator;
 import java.security.cert.X509Certificate;
 import java.util.HashMap;
 
+import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
 import org.apache.directory.ldap.client.api.DefaultLdapConnectionFactory;
