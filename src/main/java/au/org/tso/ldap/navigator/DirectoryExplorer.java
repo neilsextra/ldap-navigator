@@ -71,7 +71,7 @@ public class DirectoryExplorer {
 
         var logger = LoggerFactory.getLogger(DirectoryExplorer.class);
 
-        logger.info("[search] (INITIATED) '{}' - '{}' - '{}' - '{}' ...", base, filter, scope.toString(), limit);
+        logger.info("[search] (Initiated) '{}' - '{}' - '{}' - '{}' ...", base, filter, scope.toString(), limit);
 
         SearchRequest searchRequest = new SearchRequestImpl();
         searchRequest.setBase(new Dn(base));
